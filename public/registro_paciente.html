@@ -3,104 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro de Paciente - Cabeza de Algodón</title>
+  <title>Registro de Paciente - Asilo Cabeza de Algodón</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="estilos-despues.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="p-4">
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Menú Lateral -->
+      <nav class="col-md-3 col-lg-2 sidebar p-3">
+        <div class="d-flex align-items-center mb-4">
+          <i class="bi bi-heart-pulse-fill text-danger fs-3 me-2"></i>
+          <span class="fs-5 fw-bold">Asilo Algodón</span>
+        </div>
+        <ul class="nav flex-column">
+          <li class="nav-item"><a class="nav-link" href="dashboard.html"><i class="bi bi-house-door me-2"></i>Inicio</a></li>
+          <li class="nav-item"><a class="nav-link active" href="registro_paciente.html"><i class="bi bi-person-plus me-2"></i>Gestión Pacientes</a></li>
+        </ul>
+      </nav>
 
-  <div class="login-container" style="max-width: 700px; margin: 0 auto;">
-    <div class="text-center mb-4">
-      <img src="logo.jpg" alt="Logo" class="app-logo mb-2">
-      <h2>Registro de Nuevo Interno</h2>
-      <p class="subtitle">Ingrese la información del paciente y su familiar responsable</p>
+      <!-- Formulario Principal -->
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+        <h2 class="border-bottom pb-3 mb-4">Registro de Nuevo Interno y Familiar Responsable</h2>
+        
+        <form id="formRegistroPaciente" class="card card-custom p-4">
+          <h4 class="text-primary mb-3"><i class="bi bi-person-fill me-2"></i>Datos del Familiar Responsable</h4>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label">Nombre Completo</label>
+              <input type="text" id="nombreFamiliar" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Teléfono</label>
+              <input type="tel" id="telefonoFamiliar" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Correo Electrónico</label>
+              <input type="email" id="correoFamiliar" class="form-control" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Dirección</label>
+              <input type="text" id="direccionFamiliar" class="form-control" required>
+            </div>
+          </div>
+
+          <h4 class="text-primary mb-3"><i class="bi bi-hospital me-2"></i>Datos del Paciente / Interno</h4>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label">Nombre Completo del Paciente</label>
+              <input type="text" id="nombrePaciente" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Fecha de Nacimiento</label>
+              <input type="date" id="fechaNacimiento" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Cuota Mensual (Q.)</label>
+              <input type="number" step="0.01" id="cuotaMensual" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Psicopatología que Padece (Ficha Base)</label>
+              <textarea id="psicopatologia" class="form-control" rows="3" placeholder="Descripción de padecimientos psicológicos/psiquiátricos..."></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Medicamentos de Cajón</label>
+              <textarea id="medicamentosCajon" class="form-control" rows="3" placeholder="Medicamentos fijos de aplicación diaria..."></textarea>
+            </div>
+          </div>
+
+          <div class="text-end">
+            <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-save me-2"></i>Guardar Paciente</button>
+          </div>
+        </form>
+      </main>
     </div>
-
-    <form id="registroPacienteForm">
-      <h5 class="text-info border-bottom pb-2">Datos del Familiar Responsable</h5>
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Nombre Completo</label>
-          <input type="text" class="form-control" id="nombreFamiliar" required>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Teléfono de Contacto</label>
-          <input type="text" class="form-control" id="telefonoFamiliar" required>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Correo Electrónico (Notificaciones)</label>
-          <input type="email" class="form-control" id="correoFamiliar" required>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Dirección</label>
-          <input type="text" class="form-control" id="direccionFamiliar">
-        </div>
-      </div>
-
-      <h5 class="text-info border-bottom pb-2 mt-3">Datos del Paciente / Interno</h5>
-      <div class="row">
-        <div class="col-md-8 mb-3">
-          <label class="form-label">Nombre Completo del Paciente</label>
-          <input type="text" class="form-control" id="nombrePaciente" required>
-        </div>
-        <div class="col-md-4 mb-3">
-          <label class="form-label">Fecha de Nacimiento</label>
-          <input type="date" class="form-control" id="fechaNacimiento" required>
-        </div>
-        <div class="col-md-4 mb-3">
-          <label class="form-label">Cuota Mensual (Q)</label>
-          <input type="number" step="0.01" class="form-control" id="cuotaMensual" placeholder="0.00">
-        </div>
-        <div class="col-md-8 mb-3">
-          <label class="form-label">Psicopatología Base</label>
-          <input type="text" class="form-control" id="psicopatologia" placeholder="ej. Demencia Senil, Alzhéimer">
-        </div>
-        <div class="col-12 mb-3">
-          <label class="form-label">Medicamentos de Cajón</label>
-          <textarea class="form-control" id="medicamentosCajon" rows="2" placeholder="ej. Losartán 50mg diario"></textarea>
-        </div>
-      </div>
-
-      <div class="d-grid gap-2 mt-4">
-        <button type="submit" class="btn btn-primary btn-custom">Registrar Paciente</button>
-      </div>
-    </form>
   </div>
 
-  <script>
-    document.getElementById('registroPacienteForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-
-      const data = {
-        nombreFamiliar: document.getElementById('nombreFamiliar').value,
-        telefonoFamiliar: document.getElementById('telefonoFamiliar').value,
-        correoFamiliar: document.getElementById('correoFamiliar').value,
-        direccionFamiliar: document.getElementById('direccionFamiliar').value,
-        nombrePaciente: document.getElementById('nombrePaciente').value,
-        fechaNacimiento: document.getElementById('fechaNacimiento').value,
-        cuotaMensual: document.getElementById('cuotaMensual').value,
-        psicopatologia: document.getElementById('psicopatologia').value,
-        medicamentosCajon: document.getElementById('medicamentosCajon').value
-      };
-
-      try {
-        const response = await fetch('/api/pacientes/registrar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-
-        const res = await response.json();
-        if (response.ok) {
-          alert("✅ Paciente y familiar registrados con éxito");
-          document.getElementById('registroPacienteForm').reset();
-        } else {
-          alert("❌ Error: " + res.mensaje);
-        }
-      } catch (err) {
-        alert(" Error de conexión con el servidor Node.js");
-      }
-    });
-  </script>
+  <!-- Archivo de Lógica de JavaScript Separado -->
+  <script src="js/pacientes.js"></script>
 </body>
 </html>
