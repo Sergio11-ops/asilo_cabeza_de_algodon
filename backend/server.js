@@ -1,137 +1,97 @@
 const express = require('express');
 const mysql = require('mysql2/promise');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const path = require('path');
 const cors = require('cors');
-const nodemailer = require('nodemailer');
 
 const app = express();
-app.use(express.json());
-app.use(cors());
-app.use(express.static('../public')); // Sirve los archivos del Frontend desde /public
+const PORT = process.env.PORT || 3000;
+const JWT_SECRET = 'secreto_super_seguro_asilo_2026';
 
-// Configuración DB MySQL
-const dbPool = mysql.createPool({
+// Middlewares
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Servir archivos estáticos desde la carpeta 'public'
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Pool de Conexión a MySQL
+const db = mysql.createPool({
     host: 'localhost',
-    user: 'root',
-    password: '',
+    user: 'root',        // Cambia según tu configuración local de MySQL
+    password: '',        // Tu contraseña de MySQL local (si la tienes)
     database: 'asilo_db',
     waitForConnections: true,
-    connectionLimit: 10
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
-// Configuración Transporter Nodemailer para correos a familiares
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'notificaciones@asilo.org', // Reemplazar por credenciales reales
-        pass: 'contrasena_correo'
+// Verificación inicial de conexión a la BD
+(async () => {
+    try {
+        const connection = await db.getConnection();
+        console.log('✅ Conexión exitosa a la base de datos MySQL (asilo_db)');
+        connection.release();
+    } catch (error) {
+        console.error('❌ Error al conectar a MySQL:', error.message);
     }
-});
+})();
 
-// 1. ENDPOINT: Autenticación / Login
+// ==========================================
+// 🔑 RUTAS DE AUTENTICACIÓN (LOGIN)
+// ==========================================
 app.post('/api/auth/login', async (req, res) => {
     const { correo, password } = req.body;
+
+    if (!correo || !password) {
+        return res.status(400).json({ mensaje: 'El correo y la contraseña son obligatorios.' });
+    }
+
     try {
-        const [rows] = await dbPool.execute('SELECT * FROM usuarios WHERE correo = ? AND estado = 1', [correo]);
-        if (rows.length === 0) return res.status(401).json({ mensaje: 'Credenciales inválidas' });
+        // 1. Buscar usuario por correo
+        const [rows] = await db.query('SELECT * FROM usuarios WHERE correo = ? AND estado = 1', [correo]);
+
+        if (rows.length === 0) {
+            return res.status(401).json({ mensaje: 'Credenciales inválidas o usuario inactivo.' });
+        }
 
         const usuario = rows[0];
-        const esValido = await bcrypt.compare(password, usuario.password_hash);
-        if (!esValido) return res.status(401).json({ mensaje: 'Credenciales inválidas' });
 
+        // 2. Comparar contraseña con el hash encriptado
+        const passwordMatch = await bcrypt.compare(password, usuario.password_hash);
+
+        if (!passwordMatch) {
+            return res.status(401).json({ mensaje: 'Credenciales inválidas.' });
+        }
+
+        // 3. Generar Token JWT de autenticación
         const token = jwt.sign(
-            { id: usuario.id_usuario, rol: usuario.rol },
-            'ClaveSecretaAsilo2026',
+            { id_usuario: usuario.id_usuario, rol: usuario.rol, nombre: usuario.nombre },
+            JWT_SECRET,
             { expiresIn: '8h' }
         );
 
-        res.json({ token, usuario: { nombre: usuario.nombre, correo: usuario.correo, rol: usuario.rol } });
+        // 4. Responder al cliente omitiendo la contraseña
+        res.json({
+            mensaje: 'Inicio de sesión exitoso',
+            token,
+            usuario: {
+                id_usuario: usuario.id_usuario,
+                nombre: usuario.nombre,
+                correo: usuario.correo,
+                rol: usuario.rol
+            }
+        });
+
     } catch (error) {
-        res.status(500).json({ mensaje: 'Error en el servidor', detalle: error.message });
+        console.error('Error en /api/auth/login:', error);
+        res.status(500).json({ mensaje: 'Error interno del servidor al procesar la solicitud.' });
     }
 });
 
-// 2. ENDPOINT: Registrar Paciente y Familiar
-app.post('/api/pacientes/registrar', async (req, res) => {
-    const { nombreFamiliar, telefonoFamiliar, correoFamiliar, direccionFamiliar, nombrePaciente, fechaNacimiento, cuotaMensual, psicopatologia, medicamentosCajon } = req.body;
-    const connection = await dbPool.getConnection();
-    try {
-        await connection.beginTransaction();
-
-        const [resFam] = await connection.execute(
-            'INSERT INTO familiares (nombre, telefono, correo, direccion) VALUES (?, ?, ?, ?)',
-            [nombreFamiliar, telefonoFamiliar, correoFamiliar, direccionFamiliar]
-        );
-
-        const [resPac] = await connection.execute(
-            'INSERT INTO pacientes (id_familiar, nombre, fecha_nacimiento, cuota_mensual, psicopatologia_base, medicamentos_cajon) VALUES (?, ?, ?, ?, ?, ?)',
-            [resFam.insertId, nombrePaciente, fechaNacimiento, cuotaMensual || 0, psicopatologia, medicamentosCajon]
-        );
-
-        await connection.commit();
-        res.json({ mensaje: 'Paciente registrado exitosamente', id_paciente: resPac.insertId });
-    } catch (error) {
-        await connection.rollback();
-        res.status(500).json({ mensaje: 'Error al registrar paciente', detalle: error.message });
-    } finally {
-        connection.release();
-    }
+// Iniciar Servidor Node.js
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
-
-// 3. ENDPOINT: Crear Solicitud Médica y enviar correo
-app.post('/api/solicitudes/crear', async (req, res) => {
-    const { id_paciente, id_medico_emisor, id_enfermero_asignado, especialidad_requerida, motivo } = req.body;
-    try {
-        const [resSol] = await dbPool.execute(
-            'INSERT INTO solicitudes_medicas (id_paciente, id_medico_emisor, id_enfermero_asignado, especialidad_requerida, motivo) VALUES (?, ?, ?, ?, ?)',
-            [id_paciente, id_medico_emisor, id_enfermero_asignado, especialidad_requerida, motivo]
-        );
-
-        // Obtener datos del familiar para enviar correo
-        const [info] = await dbPool.execute(
-            'SELECT p.nombre AS paciente, f.correo, f.nombre AS familiar FROM pacientes p JOIN familiares f ON p.id_familiar = f.id_familiar WHERE p.id_paciente = ?',
-            [id_paciente]
-        );
-
-        if (info.length > 0) {
-            const correoDestino = info[0].correo;
-            const mailOptions = {
-                from: '"Asilo Cabeza de Algodón" <notificaciones@asilo.org>',
-                to: correoDestino,
-                subject: `Notificación Médica - Paciente: ${info[0].paciente}`,
-                text: `Estimado(a) ${info[0].familiar},\n\nLe informamos que se ha generado una solicitud de evaluación médica especializada para el paciente ${info[0].paciente}.\nEspecialidad requerida: ${especialidad_requerida}.\nMotivo: ${motivo}.\n\nLe mantendremos informado sobre la fecha asignada.`
-            };
-            transporter.sendMail(mailOptions).catch(err => console.error('Error enviando correo:', err));
-        }
-
-        res.json({ mensaje: 'Solicitud creada y correo enviado al familiar', id_solicitud: resSol.insertId });
-    } catch (error) {
-        res.status(500).json({ mensaje: 'Error creando la solicitud', detalle: error.message });
-    }
-});
-
-// 4. ENDPOINT: Obtener Historial / Ficha Médica de un Paciente
-app.get('/api/pacientes/:id/ficha', async (req, res) => {
-    const idPaciente = req.params.id;
-    try {
-        const [paciente] = await dbPool.execute(
-            'SELECT p.*, f.nombre AS familiar_nombre, f.telefono AS familiar_telefono, f.correo AS familiar_correo FROM pacientes p JOIN familiares f ON p.id_familiar = f.id_familiar WHERE p.id_paciente = ?',
-            [idPaciente]
-        );
-
-        if (paciente.length === 0) return res.status(404).json({ mensaje: 'Paciente no encontrado' });
-
-        const [visitas] = await dbPool.execute(
-            'SELECT v.id_visita, v.fecha_visita, v.diagnostico, v.observaciones, v.costo_consulta, u.nombre AS medico_especialista FROM visitas_medicas v JOIN citas_fundacion c ON v.id_cita = c.id_cita JOIN usuarios u ON c.id_medico_especialista = u.id_usuario WHERE v.id_paciente = ? ORDER BY v.fecha_visita DESC',
-            [idPaciente]
-        );
-
-        res.json({ paciente: paciente[0], historial_visitas: visitas });
-    } catch (error) {
-        res.status(500).json({ mensaje: 'Error obteniendo la ficha médica', detalle: error.message });
-    }
-});
-
-const PORT = 3000;
-app.listen(PORT, () => console.log(`Servidor de Asilo escuchando en http://localhost:${PORT}`));
