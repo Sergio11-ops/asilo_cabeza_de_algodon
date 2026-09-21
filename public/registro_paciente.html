@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Paciente - Cabeza de Algodón</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="estilos-despues.css">
+</head>
+<body class="p-4">
+
+  <div class="login-container" style="max-width: 700px; margin: 0 auto;">
+    <div class="text-center mb-4">
+      <img src="logo.jpg" alt="Logo" class="app-logo mb-2">
+      <h2>Registro de Nuevo Interno</h2>
+      <p class="subtitle">Ingrese la información del paciente y su familiar responsable</p>
+    </div>
+
+    <form id="registroPacienteForm">
+      <h5 class="text-info border-bottom pb-2">Datos del Familiar Responsable</h5>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Nombre Completo</label>
+          <input type="text" class="form-control" id="nombreFamiliar" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Teléfono de Contacto</label>
+          <input type="text" class="form-control" id="telefonoFamiliar" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Correo Electrónico (Notificaciones)</label>
+          <input type="email" class="form-control" id="correoFamiliar" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Dirección</label>
+          <input type="text" class="form-control" id="direccionFamiliar">
+        </div>
+      </div>
+
+      <h5 class="text-info border-bottom pb-2 mt-3">Datos del Paciente / Interno</h5>
+      <div class="row">
+        <div class="col-md-8 mb-3">
+          <label class="form-label">Nombre Completo del Paciente</label>
+          <input type="text" class="form-control" id="nombrePaciente" required>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Fecha de Nacimiento</label>
+          <input type="date" class="form-control" id="fechaNacimiento" required>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Cuota Mensual (Q)</label>
+          <input type="number" step="0.01" class="form-control" id="cuotaMensual" placeholder="0.00">
+        </div>
+        <div class="col-md-8 mb-3">
+          <label class="form-label">Psicopatología Base</label>
+          <input type="text" class="form-control" id="psicopatologia" placeholder="ej. Demencia Senil, Alzhéimer">
+        </div>
+        <div class="col-12 mb-3">
+          <label class="form-label">Medicamentos de Cajón</label>
+          <textarea class="form-control" id="medicamentosCajon" rows="2" placeholder="ej. Losartán 50mg diario"></textarea>
+        </div>
+      </div>
+
+      <div class="d-grid gap-2 mt-4">
+        <button type="submit" class="btn btn-primary btn-custom">Registrar Paciente</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('registroPacienteForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const data = {
+        nombreFamiliar: document.getElementById('nombreFamiliar').value,
+        telefonoFamiliar: document.getElementById('telefonoFamiliar').value,
+        correoFamiliar: document.getElementById('correoFamiliar').value,
+        direccionFamiliar: document.getElementById('direccionFamiliar').value,
+        nombrePaciente: document.getElementById('nombrePaciente').value,
+        fechaNacimiento: document.getElementById('fechaNacimiento').value,
+        cuotaMensual: document.getElementById('cuotaMensual').value,
+        psicopatologia: document.getElementById('psicopatologia').value,
+        medicamentosCajon: document.getElementById('medicamentosCajon').value
+      };
+
+      try {
+        const response = await fetch('/api/pacientes/registrar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const res = await response.json();
+        if (response.ok) {
+          alert("✅ Paciente y familiar registrados con éxito");
+          document.getElementById('registroPacienteForm').reset();
+        } else {
+          alert("❌ Error: " + res.mensaje);
+        }
+      } catch (err) {
+        alert(" Error de conexión con el servidor Node.js");
+      }
+    });
+  </script>
+</body>
+</html>
