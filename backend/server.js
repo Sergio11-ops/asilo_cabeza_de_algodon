@@ -35,8 +35,9 @@ const db = mysql.createPool({
         console.log('✅ Conexión exitosa a la base de datos MySQL (asilo_db)');
         connection.release();
     } catch (error) {
-        console.error('❌ Error al conectar a MySQL:', error.message);
-    }
+    console.error('❌ Error al conectar a MySQL:');
+    console.error(error);
+}
 })();
 
 // ==========================================
@@ -60,7 +61,8 @@ app.post('/api/auth/login', async (req, res) => {
         const usuario = rows[0];
 
         // 2. Comparar contraseña con el hash encriptado
-        const passwordMatch = await bcrypt.compare(password, usuario.password_hash);
+        // 2. Comparar contraseña (admite tanto 'admin123' en texto plano como encriptada)
+const passwordMatch = (password === usuario.password_hash) || await bcrypt.compare(password, usuario.password_hash);
 
         if (!passwordMatch) {
             return res.status(401).json({ mensaje: 'Credenciales inválidas.' });
@@ -90,6 +92,73 @@ app.post('/api/auth/login', async (req, res) => {
         res.status(500).json({ mensaje: 'Error interno del servidor al procesar la solicitud.' });
     }
 });
+app.post('/api/pacientes/registrar', async (req, res) => {
+    const {
+        nombreFamiliar,
+        telefonoFamiliar,
+        correoFamiliar,
+        direccionFamiliar,
+        nombrePaciente,
+        fechaNacimiento,
+        cuotaMensual,
+        psicopatologia,
+        medicamentosCajon
+    } = req.body;
+
+    if (!nombreFamiliar || !telefonoFamiliar || !nombrePaciente || !fechaNacimiento || !cuotaMensual) {
+        return res.status(400).json({ mensaje: 'Por favor complete todos los campos obligatorios.' });
+    }
+
+    let connection;
+    try {
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        // 1. Insertar el familiar responsable
+        const [resFamiliar] = await connection.query(
+            'INSERT INTO familiares (nombre, telefono, correo, direccion) VALUES (?, ?, ?, ?)',
+            [nombreFamiliar, telefonoFamiliar, correoFamiliar || '', direccionFamiliar || '']
+        );
+
+        const idFamiliar = resFamiliar.insertId;
+
+        // 2. Insertar el paciente
+        const [resPaciente] = await connection.query(
+            `INSERT INTO pacientes 
+            (id_familiar, nombre, fecha_nacimiento, cuota_mensual, psicopatologia, medicamentos_cajon) 
+            VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+                idFamiliar, 
+                nombrePaciente, 
+                fechaNacimiento, 
+                parseFloat(cuotaMensual), 
+                psicopatologia || '', 
+                medicamentosCajon || ''
+            ]
+        );
+
+        await connection.commit();
+
+        res.status(201).json({
+            mensaje: 'Paciente registrado con éxito',
+            id_paciente: resPaciente.insertId
+        });
+
+    } catch (error) {
+        if (connection) await connection.rollback();
+        console.error('❌ Error de MySQL al registrar paciente:', error);
+        
+        // Devolvemos el mensaje de error de MySQL al cliente para diagnosticar
+        res.status(500).json({ 
+            mensaje: 'Error en la base de datos al registrar el paciente.', 
+            detalles: error.message 
+        });
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
+
 
 // Iniciar Servidor Node.js
 app.listen(PORT, () => {
