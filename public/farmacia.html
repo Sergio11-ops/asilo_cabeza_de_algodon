@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farmacia - Cabeza de Algodón</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-pagina-roles="admin,medico_general,especialista,farmacia">
+  <div class="app-shell">
+
+    <aside class="icon-rail">
+      <div class="rail-logo"><img src="imagenes/logo.png" alt="Logo Cabeza de Algodón"></div>
+      <nav class="rail-nav">
+        <a class="rail-link" href="dashboard.html" title="Inicio" data-roles="admin,medico_general,especialista,enfermero,laboratorio,farmacia,caja"><i class="bi bi-house-door-fill"></i></a>
+        <a class="rail-link" href="registro_paciente.html" title="Gestión Pacientes" data-roles="admin,enfermero"><i class="bi bi-person-plus"></i></a>
+        <a class="rail-link" href="solicitudes_medicas.html" title="Solicitudes Médicas" data-roles="admin,medico_general,especialista"><i class="bi bi-file-earmark-medical"></i></a>
+        <a class="rail-link" href="agenda_fundacion.html" title="Agenda Fundación" data-roles="admin,medico_general,especialista,enfermero"><i class="bi bi-calendar-check"></i></a>
+        <a class="rail-link" href="laboratorio.html" title="Laboratorio" data-roles="admin,medico_general,especialista,laboratorio"><i class="bi bi-clipboard2-pulse"></i></a>
+        <a class="rail-link active" href="farmacia.html" title="Farmacia" data-roles="admin,medico_general,especialista,farmacia"><i class="bi bi-capsule"></i></a>
+        <a class="rail-link" href="caja_donaciones.html" title="Caja y Donaciones" data-roles="admin,caja"><i class="bi bi-cash-coin"></i></a>
+        <a class="rail-link" href="reportes.html" title="Reportes" data-roles="admin"><i class="bi bi-bar-chart-line"></i></a>
+        <a class="rail-link" href="usuarios.html" title="Gestión de Usuarios" data-roles="admin"><i class="bi bi-people"></i></a>
+      </nav>
+      <div class="rail-bottom">
+        <button id="btnCerrarSesion" class="rail-logout" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i></button>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="main-header">
+        <div>
+          <p class="eyebrow-greeting">Fundación Cabeza de Algodón</p>
+          <h1>Farmacia</h1>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn dashed" title="Registrar salida"><i class="bi bi-box-arrow-up"></i></button>
+          <button class="icon-btn filled" title="Nuevo medicamento"><i class="bi bi-plus-lg"></i></button>
+        </div>
+      </header>
+
+      <section class="stat-row">
+        <div class="stat-pill tone-brand">
+          <div class="stat-icon"><i class="bi bi-capsule"></i></div>
+          <div><p class="stat-label">Medicamentos activos</p><p class="stat-value">64</p></div>
+        </div>
+        <div class="stat-pill tone-rose">
+          <div class="stat-icon"><i class="bi bi-exclamation-triangle"></i></div>
+          <div><p class="stat-label">Stock bajo</p><p class="stat-value">5</p></div>
+        </div>
+        <div class="stat-pill tone-gold">
+          <div class="stat-icon"><i class="bi bi-calendar-x"></i></div>
+          <div><p class="stat-label">Próximos a vencer</p><p class="stat-value">3</p></div>
+        </div>
+      </section>
+
+      <section class="panel-card">
+        <div class="panel-card-header">
+          <h3>Inventario</h3>
+          <div class="search-bar">
+            <i class="bi bi-search"></i>
+            <input type="text" class="form-control" placeholder="Buscar medicamento...">
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-custom">
+            <thead>
+              <tr>
+                <th>Medicamento</th>
+                <th>Presentación</th>
+                <th>Existencia</th>
+                <th>Nivel de stock</th>
+                <th>Vencimiento</th>
+                <th class="text-end">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="low-stock-row">
+                <td class="fw-semibold">Losartán 50mg</td>
+                <td>Tableta</td>
+                <td>18 unid.</td>
+                <td><div class="stock-bar"><span style="width: 18%; background-color: var(--rose);"></span></div></td>
+                <td>03/2027</td>
+                <td class="text-end"><button class="btn-icon-action neutral" title="Registrar salida"><i class="bi bi-box-arrow-up"></i></button></td>
+              </tr>
+              <tr>
+                <td class="fw-semibold">Metformina 850mg</td>
+                <td>Tableta</td>
+                <td>210 unid.</td>
+                <td><div class="stock-bar"><span style="width: 82%; background-color: var(--sage);"></span></div></td>
+                <td>11/2027</td>
+                <td class="text-end"><button class="btn-icon-action neutral" title="Registrar salida"><i class="bi bi-box-arrow-up"></i></button></td>
+              </tr>
+              <tr class="low-stock-row">
+                <td class="fw-semibold">Insulina NPH</td>
+                <td>Vial 10ml</td>
+                <td>6 unid.</td>
+                <td><div class="stock-bar"><span style="width: 12%; background-color: var(--rose);"></span></div></td>
+                <td>01/2027</td>
+                <td class="text-end"><button class="btn-icon-action neutral" title="Registrar salida"><i class="bi bi-box-arrow-up"></i></button></td>
+              </tr>
+              <tr>
+                <td class="fw-semibold">Paracetamol 500mg</td>
+                <td>Tableta</td>
+                <td>340 unid.</td>
+                <td><div class="stock-bar"><span style="width: 90%; background-color: var(--sage);"></span></div></td>
+                <td>06/2027</td>
+                <td class="text-end"><button class="btn-icon-action neutral" title="Registrar salida"><i class="bi bi-box-arrow-up"></i></button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>

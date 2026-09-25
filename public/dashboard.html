@@ -4,84 +4,267 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel General - Cabeza de Algodón</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
-  <div class="container-fluid">
-    <div class="row">
-      <!-- Barra Lateral de Navegación -->
-      <nav class="col-md-3 col-lg-2 sidebar p-3">
-        <div class="d-flex align-items-center mb-4">
-          <i class="bi bi-heart-pulse-fill text-danger fs-3 me-2"></i>
-          <span class="fs-5 fw-bold">Asilo Algodón</span>
-        </div>
-        <ul class="nav flex-column">
-          <li class="nav-item"><a class="nav-link active" href="dashboard.html"><i class="bi bi-house-door me-2"></i>Inicio</a></li>
-          <li class="nav-item"><a class="nav-link" href="registro_paciente.html"><i class="bi bi-person-plus me-2"></i>Gestión Pacientes</a></li>
-          <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-file-earmark-medical me-2"></i>Solicitudes Médicas</a></li>
-          <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-calendar-check me-2"></i>Agenda Fundación</a></li>
-          <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-vial me-2"></i>Laboratorio</a></li>
-          <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-capsule me-2"></i>Farmacia</a></li>
-          <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-cash-stack me-2"></i>Caja y Donaciones</a></li>
-          <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-bar-chart-line me-2"></i>Reportes</a></li>
-        </ul>
-        <hr class="text-light">
-        <button id="btnCerrarSesion" class="btn btn-outline-light w-100 btn-sm"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</button>
+<body data-pagina-roles="admin,medico_general,especialista,enfermero,laboratorio,farmacia,caja">
+  <div class="app-shell">
+
+    <!-- Rail de íconos -->
+    <aside class="icon-rail">
+      <div class="rail-logo">
+        <img src="imagenes/logo.png" alt="Logo Cabeza de Algodón">
+      </div>
+      <nav class="rail-nav">
+        <a class="rail-link active" href="dashboard.html" title="Inicio" data-roles="admin,medico_general,especialista,enfermero,laboratorio,farmacia,caja"><i class="bi bi-house-door-fill"></i></a>
+        <a class="rail-link" href="registro_paciente.html" title="Gestión Pacientes" data-roles="admin,enfermero"><i class="bi bi-person-plus"></i></a>
+        <a class="rail-link" href="solicitudes_medicas.html" title="Solicitudes Médicas" data-roles="admin,medico_general,especialista"><i class="bi bi-file-earmark-medical"></i></a>
+        <a class="rail-link" href="agenda_fundacion.html" title="Agenda Fundación" data-roles="admin,medico_general,especialista,enfermero"><i class="bi bi-calendar-check"></i></a>
+        <a class="rail-link" href="laboratorio.html" title="Laboratorio" data-roles="admin,medico_general,especialista,laboratorio"><i class="bi bi-clipboard2-pulse"></i></a>
+        <a class="rail-link" href="farmacia.html" title="Farmacia" data-roles="admin,medico_general,especialista,farmacia"><i class="bi bi-capsule"></i></a>
+        <a class="rail-link" href="caja_donaciones.html" title="Caja y Donaciones" data-roles="admin,caja"><i class="bi bi-cash-coin"></i></a>
+        <a class="rail-link" href="reportes.html" title="Reportes" data-roles="admin"><i class="bi bi-bar-chart-line"></i></a>
+        <a class="rail-link" href="usuarios.html" title="Gestión de Usuarios" data-roles="admin"><i class="bi bi-people"></i></a>
       </nav>
+      <div class="rail-bottom">
+        <button id="btnCerrarSesion" class="rail-logout" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i></button>
+      </div>
+    </aside>
 
-      <!-- Contenido Principal -->
-      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
-          <h2>Panel Operativo de Control</h2>
-          <div class="d-flex align-items-center gap-2">
-            <span class="fw-semibold text-secondary" id="userNombre">Cargando usuario...</span>
-            <span class="badge bg-primary fs-6" id="userRoleBadge">Rol: --</span>
+    <!-- Panel principal -->
+    <main class="main-panel">
+      <header class="main-header">
+        <div>
+          <p class="eyebrow-greeting">Hola, <span id="userNombre">Sergio</span></p>
+          <h1>Bienvenido de nuevo</h1>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn dashed" title="Nuevo paciente"><i class="bi bi-plus-lg"></i></button>
+          <button class="icon-btn filled" title="Buscar"><i class="bi bi-search"></i></button>
+        </div>
+      </header>
+
+      <!-- Hero: recordatorio -->
+      <section class="hero-card">
+        <div class="hero-text">
+          <span class="hero-tag">Recordatorio</span>
+          <h2>Tienes solicitudes médicas esperando aprobación</h2>
+          <div class="hero-actions">
+            <button class="btn-hero-solid" onclick="window.location.href='solicitudes_medicas.html'">Ver solicitudes</button>
+            <button class="btn-hero-outline">Ver historial</button>
           </div>
         </div>
+        <div class="hero-art" aria-hidden="true">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="88" fill="#ffffff" opacity="0.08"/>
+            <circle cx="100" cy="100" r="60" fill="#ffffff" opacity="0.12"/>
+            <path d="M100 60c-10-14-32-14-40-1-8 12-3 27 8 37l32 29 32-29c11-10 16-25 8-37-8-13-30-13-40 1z"
+                  fill="#e3a458" opacity="0.9"/>
+            <circle cx="100" cy="100" r="6" fill="#ffffff"/>
+          </svg>
+        </div>
+      </section>
 
-        <div class="row g-4">
-          <div class="col-md-4">
-            <div class="card card-custom shadow-sm p-3 border-start border-primary border-4" id="cardPacientes">
-              <div class="d-flex align-items-center">
-                <i class="bi bi-people fs-1 text-primary me-3"></i>
-                <div>
-                  <h5 class="mb-1">Pacientes</h5>
-                  <p class="text-muted mb-0">Registro y Ficha Médica</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-4">
-            <div class="card card-custom shadow-sm p-3 border-start border-warning border-4" id="cardSolicitudes">
-              <div class="d-flex align-items-center">
-                <i class="bi bi-envelope-paper fs-1 text-warning me-3"></i>
-                <div>
-                  <h5 class="mb-1">Solicitudes</h5>
-                  <p class="text-muted mb-0">Remisión a Especialistas</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-4">
-            <div class="card card-custom shadow-sm p-3 border-start border-success border-4" id="cardFinanzas">
-              <div class="d-flex align-items-center">
-                <i class="bi bi-currency-dollar fs-1 text-success me-3"></i>
-                <div>
-                  <h5 class="mb-1">Finanzas y Donaciones</h5>
-                  <p class="text-muted mb-0">Control de Caja y Gastos</p>
-                </div>
-              </div>
-            </div>
+      <!-- Estadísticas -->
+      <section class="stat-row">
+        <div class="stat-pill tone-brand">
+          <div class="stat-icon"><i class="bi bi-people"></i></div>
+          <div>
+            <p class="stat-label">Pacientes activos</p>
+            <p class="stat-value" id="kpiPacientesActivos">128</p>
           </div>
         </div>
-      </main>
-    </div>
+        <div class="stat-pill tone-gold">
+          <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+          <div>
+            <p class="stat-label">Citas de hoy</p>
+            <p class="stat-value" id="kpiCitasHoy">14</p>
+          </div>
+        </div>
+        <div class="stat-pill tone-sage">
+          <div class="stat-icon"><i class="bi bi-heart-pulse"></i></div>
+          <div>
+            <p class="stat-label">Consultas del mes</p>
+            <p class="stat-value" id="kpiConsultasMes">46</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Solicitudes de cita -->
+      <section class="panel-card">
+        <div class="panel-card-header">
+          <h3>Solicitudes de Cita</h3>
+          <span class="pill-count" id="pillSolicitudesPendientes">9 pendientes</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-custom">
+            <thead>
+              <tr>
+                <th>Paciente</th>
+                <th>Contacto</th>
+                <th>Fecha</th>
+                <th class="text-end">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tablaSolicitudes">
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="avatar-patient">MR</div>
+                    <div>
+                      <div class="fw-semibold">Marta Reyes</div>
+                      <div class="text-muted small">Control de diabetes</div>
+                    </div>
+                  </div>
+                </td>
+                <td>4123-4567</td>
+                <td>03/10 - 10:00</td>
+                <td class="text-end">
+                  <button class="btn-icon-action approve" title="Aprobar"><i class="bi bi-check-lg"></i></button>
+                  <button class="btn-icon-action reject" title="Rechazar"><i class="bi bi-x-lg"></i></button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="avatar-patient">EC</div>
+                    <div>
+                      <div class="fw-semibold">Efraín Castillo</div>
+                      <div class="text-muted small">Terapia respiratoria</div>
+                    </div>
+                  </div>
+                </td>
+                <td>3345-8890</td>
+                <td>04/10 - 08:30</td>
+                <td class="text-end">
+                  <button class="btn-icon-action approve" title="Aprobar"><i class="bi bi-check-lg"></i></button>
+                  <button class="btn-icon-action reject" title="Rechazar"><i class="bi bi-x-lg"></i></button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="avatar-patient">SL</div>
+                    <div>
+                      <div class="fw-semibold">Sofía López</div>
+                      <div class="text-muted small">Valoración cardiológica</div>
+                    </div>
+                  </div>
+                </td>
+                <td>5567-2210</td>
+                <td>04/10 - 15:00</td>
+                <td class="text-end">
+                  <button class="btn-icon-action approve" title="Aprobar"><i class="bi bi-check-lg"></i></button>
+                  <button class="btn-icon-action reject" title="Rechazar"><i class="bi bi-x-lg"></i></button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="avatar-patient">JG</div>
+                    <div>
+                      <div class="fw-semibold">José Gómez</div>
+                      <div class="text-muted small">Curación de herida</div>
+                    </div>
+                  </div>
+                </td>
+                <td>4498-1123</td>
+                <td>05/10 - 07:00</td>
+                <td class="text-end">
+                  <button class="btn-icon-action approve" title="Aprobar"><i class="bi bi-check-lg"></i></button>
+                  <button class="btn-icon-action reject" title="Rechazar"><i class="bi bi-x-lg"></i></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- Columna lateral derecha -->
+    <aside class="side-rail">
+      <div class="side-rail-header">
+        <h3>Agenda Fundación</h3>
+        <button class="icon-btn-bell" title="Notificaciones">
+          <i class="bi bi-bell"></i>
+          <span class="dot"></span>
+        </button>
+      </div>
+
+      <div class="panel-card calendar-card">
+        <div class="calendar-month">
+          <button class="nav-arrow"><i class="bi bi-chevron-left"></i></button>
+          <span>Septiembre 2026</span>
+          <button class="nav-arrow"><i class="bi bi-chevron-right"></i></button>
+        </div>
+        <table class="mini-calendar">
+          <thead>
+            <tr><th>Lu</th><th>Ma</th><th>Mi</th><th>Ju</th><th>Vi</th><th>Sa</th><th>Do</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="muted">31</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td>
+            </tr>
+            <tr>
+              <td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td>
+            </tr>
+            <tr>
+              <td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td>
+            </tr>
+            <tr>
+              <td class="today"><span>21</span></td><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td>
+            </tr>
+            <tr>
+              <td>28</td><td>29</td><td>30</td><td class="muted">1</td><td class="muted">2</td><td class="muted">3</td><td class="muted">4</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel-card">
+        <div class="panel-card-header">
+          <h3>Ingresos Recientes</h3>
+        </div>
+        <ul class="activity-list" id="listaIngresosRecientes">
+          <li>
+            <div class="activity-icon" style="background-color: var(--sage-tint); color: var(--sage);"><i class="bi bi-person-check"></i></div>
+            <div>
+              <div class="activity-title">Glenda Solís</div>
+              <div class="activity-date">Ingresó el 18 de sept.</div>
+            </div>
+          </li>
+          <li>
+            <div class="activity-icon" style="background-color: var(--gold-tint); color: var(--gold);"><i class="bi bi-hourglass-split"></i></div>
+            <div>
+              <div class="activity-title">Hugo Barrios</div>
+              <div class="activity-date">Pendiente de valoración</div>
+            </div>
+          </li>
+          <li>
+            <div class="activity-icon" style="background-color: var(--rose-tint); color: var(--rose);"><i class="bi bi-clipboard2-pulse"></i></div>
+            <div>
+              <div class="activity-title">Dora Ramírez</div>
+              <div class="activity-date">En observación</div>
+            </div>
+          </li>
+        </ul>
+        <a href="registro_paciente.html" class="view-all-link">Ver todos <i class="bi bi-arrow-right"></i></a>
+      </div>
+
+      <div class="panel-card balance-card">
+        <div class="balance-icon"><i class="bi bi-cash-coin"></i></div>
+        <p>Donaciones del mes</p>
+        <h2 id="kpiDonacionesMes">Q5,728</h2>
+      </div>
+    </aside>
+
   </div>
 
+  <script src="js/auth.js"></script>
   <script src="js/dashboard.js"></script>
 </body>
 </html>

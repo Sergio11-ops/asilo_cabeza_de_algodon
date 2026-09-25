@@ -10,7 +10,10 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = 'secreto_super_seguro_asilo_2026';
 
 // Roles válidos del sistema
-const ROLES_VALIDOS = ['admin', 'medico', 'trabajo_social', 'caja', 'farmacia'];
+const ROLES_VALIDOS = ['admin', 'medico_general', 'especialista', 'enfermero', 'laboratorio', 'farmacia', 'caja'];
+
+// Estados válidos para un paciente (deben calzar con el <select> del formulario)
+const ESTADOS_PACIENTE_VALIDOS = ['Activo', 'Por valorar', 'En observación'];
 
 // Middlewares
 app.use(cors());
@@ -97,6 +100,9 @@ app.post('/api/auth/login', async (req, res) => {
 
         const usuario = rows[0];
 
+        // Normalizamos el rol a minúsculas por si en la BD quedó con mayúsculas o espacios
+        const rolNormalizado = (usuario.rol || '').trim().toLowerCase();
+
         // 2. Comparar contraseña (admite tanto texto plano como encriptada con bcrypt)
         const passwordMatch = (password === usuario.password_hash) || await bcrypt.compare(password, usuario.password_hash);
 
@@ -106,7 +112,7 @@ app.post('/api/auth/login', async (req, res) => {
 
         // 3. Generar Token JWT de autenticación
         const token = jwt.sign(
-            { id_usuario: usuario.id_usuario, rol: usuario.rol, nombre: usuario.nombre },
+            { id_usuario: usuario.id_usuario, rol: rolNormalizado, nombre: usuario.nombre },
             JWT_SECRET,
             { expiresIn: '8h' }
         );
@@ -119,7 +125,7 @@ app.post('/api/auth/login', async (req, res) => {
                 id_usuario: usuario.id_usuario,
                 nombre: usuario.nombre,
                 correo: usuario.correo,
-                rol: usuario.rol
+                rol: rolNormalizado
             }
         });
 
@@ -133,7 +139,9 @@ app.post('/api/auth/login', async (req, res) => {
 // 👤 GESTIÓN DE USUARIOS (solo admin)
 // ==========================================
 app.post('/api/usuarios/crear', verificarToken, permitirRoles('admin'), async (req, res) => {
-    const { nombre, correo, password, rol } = req.body;
+    const { nombre, correo } = req.body;
+    const { password } = req.body;
+    const rol = req.body.rol ? req.body.rol.trim().toLowerCase() : req.body.rol;
 
     if (!nombre || !correo || !password || !rol) {
         return res.status(400).json({ mensaje: 'Todos los campos son obligatorios.' });
@@ -171,7 +179,7 @@ app.post('/api/usuarios/crear', verificarToken, permitirRoles('admin'), async (r
 app.get('/api/usuarios', verificarToken, permitirRoles('admin'), async (req, res) => {
     try {
         const [rows] = await db.query(
-            'SELECT id_usuario, nombre, correo, rol, estado, fecha_creacion FROM usuarios ORDER BY fecha_creacion DESC'
+            'SELECT id_usuario, nombre, correo, LOWER(TRIM(rol)) AS rol, estado, fecha_creacion FROM usuarios ORDER BY fecha_creacion DESC'
         );
         res.json(rows);
     } catch (error) {
@@ -183,33 +191,42 @@ app.get('/api/usuarios', verificarToken, permitirRoles('admin'), async (req, res
 // ==========================================
 // 🧓 GESTIÓN DE PACIENTES
 // (Administrador y Trabajo Social/Recepción hacen las altas)
+//
+// Modelo real: el paciente tiene sus propios datos clínicos/administrativos,
+// y un CONTACTO DE EMERGENCIA (tabla "familiares") con nombre y teléfono.
 // ==========================================
-app.post('/api/pacientes/registrar', verificarToken, permitirRoles('admin', 'trabajo_social'), async (req, res) => {
+app.post('/api/pacientes/registrar', verificarToken, permitirRoles('admin', 'enfermero'), async (req, res) => {
     const {
-        nombreFamiliar,
-        telefonoFamiliar,
-        correoFamiliar,
-        direccionFamiliar,
         nombrePaciente,
         fechaNacimiento,
-        cuotaMensual,
-        psicopatologia,
-        medicamentosCajon
+        genero,
+        dpi,
+        telefonoContacto,
+        nombreContactoEmergencia,
+        telefonoContactoEmergencia,
+        diagnosticoPrincipal,
+        estado,
+        fechaIngreso,
+        observaciones
     } = req.body;
 
-    if (!nombreFamiliar || !telefonoFamiliar || !nombrePaciente || !fechaNacimiento || !cuotaMensual) {
+    // Campos obligatorios según el formulario de registro_paciente.html
+    if (!nombrePaciente || !fechaNacimiento || !genero || !fechaIngreso ||
+        !nombreContactoEmergencia || !telefonoContactoEmergencia) {
         return res.status(400).json({ mensaje: 'Por favor complete todos los campos obligatorios.' });
     }
+
+    const estadoFinal = estado && ESTADOS_PACIENTE_VALIDOS.includes(estado) ? estado : 'Activo';
 
     let connection;
     try {
         connection = await db.getConnection();
         await connection.beginTransaction();
 
-        // 1. Insertar el familiar responsable
+        // 1. Insertar el contacto de emergencia (familiar)
         const [resFamiliar] = await connection.query(
-            'INSERT INTO familiares (nombre, telefono, correo, direccion) VALUES (?, ?, ?, ?)',
-            [nombreFamiliar, telefonoFamiliar, correoFamiliar || '', direccionFamiliar || '']
+            'INSERT INTO familiares (nombre, telefono) VALUES (?, ?)',
+            [nombreContactoEmergencia, telefonoContactoEmergencia]
         );
 
         const idFamiliar = resFamiliar.insertId;
@@ -217,15 +234,20 @@ app.post('/api/pacientes/registrar', verificarToken, permitirRoles('admin', 'tra
         // 2. Insertar el paciente
         const [resPaciente] = await connection.query(
             `INSERT INTO pacientes 
-            (id_familiar, nombre, fecha_nacimiento, cuota_mensual, psicopatologia, medicamentos_cajon) 
-            VALUES (?, ?, ?, ?, ?, ?)`,
+            (id_familiar, nombre, fecha_nacimiento, genero, dpi, telefono_contacto,
+             diagnostico_principal, estado, fecha_ingreso, observaciones) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 idFamiliar,
                 nombrePaciente,
                 fechaNacimiento,
-                parseFloat(cuotaMensual),
-                psicopatologia || '',
-                medicamentosCajon || ''
+                genero,
+                dpi || null,
+                telefonoContacto || null,
+                diagnosticoPrincipal || null,
+                estadoFinal,
+                fechaIngreso,
+                observaciones || null
             ]
         );
 
@@ -246,6 +268,25 @@ app.post('/api/pacientes/registrar', verificarToken, permitirRoles('admin', 'tra
         });
     } finally {
         if (connection) connection.release();
+    }
+});
+
+// Lista de pacientes con su contacto de emergencia, para la tabla de registro_paciente.html
+app.get('/api/pacientes', verificarToken, permitirRoles('admin', 'enfermero', 'medico_general', 'especialista'), async (req, res) => {
+    try {
+        const [rows] = await db.query(
+            `SELECT p.id_paciente, p.nombre, p.fecha_nacimiento, p.genero, p.dpi,
+                    p.telefono_contacto, p.diagnostico_principal, p.estado,
+                    p.fecha_ingreso, p.observaciones,
+                    f.nombre AS nombre_contacto_emergencia, f.telefono AS telefono_contacto_emergencia
+             FROM pacientes p
+             LEFT JOIN familiares f ON f.id_familiar = p.id_familiar
+             ORDER BY p.fecha_ingreso DESC`
+        );
+        res.json(rows);
+    } catch (error) {
+        console.error('❌ Error al listar pacientes:', error);
+        res.status(500).json({ mensaje: 'Error interno al obtener los pacientes.' });
     }
 });
 

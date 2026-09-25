@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solicitudes Médicas - Cabeza de Algodón</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-pagina-roles="admin,medico_general,especialista">
+  <div class="app-shell">
+
+    <aside class="icon-rail">
+      <div class="rail-logo"><img src="imagenes/logo.png" alt="Logo Cabeza de Algodón"></div>
+      <nav class="rail-nav">
+        <a class="rail-link" href="dashboard.html" title="Inicio" data-roles="admin,medico_general,especialista,enfermero,laboratorio,farmacia,caja"><i class="bi bi-house-door-fill"></i></a>
+        <a class="rail-link" href="registro_paciente.html" title="Gestión Pacientes" data-roles="admin,enfermero"><i class="bi bi-person-plus"></i></a>
+        <a class="rail-link active" href="solicitudes_medicas.html" title="Solicitudes Médicas" data-roles="admin,medico_general,especialista"><i class="bi bi-file-earmark-medical"></i></a>
+        <a class="rail-link" href="agenda_fundacion.html" title="Agenda Fundación" data-roles="admin,medico_general,especialista,enfermero"><i class="bi bi-calendar-check"></i></a>
+        <a class="rail-link" href="laboratorio.html" title="Laboratorio" data-roles="admin,medico_general,especialista,laboratorio"><i class="bi bi-clipboard2-pulse"></i></a>
+        <a class="rail-link" href="farmacia.html" title="Farmacia" data-roles="admin,medico_general,especialista,farmacia"><i class="bi bi-capsule"></i></a>
+        <a class="rail-link" href="caja_donaciones.html" title="Caja y Donaciones" data-roles="admin,caja"><i class="bi bi-cash-coin"></i></a>
+        <a class="rail-link" href="reportes.html" title="Reportes" data-roles="admin"><i class="bi bi-bar-chart-line"></i></a>
+        <a class="rail-link" href="usuarios.html" title="Gestión de Usuarios" data-roles="admin"><i class="bi bi-people"></i></a>
+      </nav>
+      <div class="rail-bottom">
+        <button id="btnCerrarSesion" class="rail-logout" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i></button>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="main-header">
+        <div>
+          <p class="eyebrow-greeting">Fundación Cabeza de Algodón</p>
+          <h1>Solicitudes Médicas</h1>
+        </div>
+      </header>
+
+      <section class="stat-row">
+        <div class="stat-pill tone-gold">
+          <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+          <div><p class="stat-label">Pendientes</p><p class="stat-value">9</p></div>
+        </div>
+        <div class="stat-pill tone-sage">
+          <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+          <div><p class="stat-label">Aprobadas este mes</p><p class="stat-value">37</p></div>
+        </div>
+        <div class="stat-pill tone-rose">
+          <div class="stat-icon"><i class="bi bi-x-circle"></i></div>
+          <div><p class="stat-label">Rechazadas</p><p class="stat-value">4</p></div>
+        </div>
+      </section>
+
+      <section class="panel-card">
+        <div class="panel-card-header">
+          <div class="filter-tabs">
+            <button class="tab-btn active">Pendientes</button>
+            <button class="tab-btn">Aprobadas</button>
+            <button class="tab-btn">Rechazadas</button>
+            <button class="tab-btn">Todas</button>
+          </div>
+          <span class="pill-count">9 pendientes</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-custom">
+            <thead>
+              <tr>
+                <th>Paciente</th>
+                <th>Tipo de solicitud</th>
+                <th>Solicitado por</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th class="text-end">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="d-flex align-items-center gap-2"><div class="avatar-patient">MR</div><div class="fw-semibold">Marta Reyes</div></div></td>
+                <td>Control de diabetes</td>
+                <td>Trabajo Social</td>
+                <td>03/10 - 10:00</td>
+                <td><span class="badge-status-pendiente">Pendiente</span></td>
+                <td class="text-end">
+                  <button class="btn-icon-action approve" title="Aprobar"><i class="bi bi-check-lg"></i></button>
+                  <button class="btn-icon-action reject" title="Rechazar"><i class="bi bi-x-lg"></i></button>
+                </td>
+              </tr>
+              <tr>
+                <td><div class="d-flex align-items-center gap-2"><div class="avatar-patient">EC</div><div class="fw-semibold">Efraín Castillo</div></div></td>
+                <td>Terapia respiratoria</td>
+                <td>Trabajo Social</td>
+                <td>04/10 - 08:30</td>
+                <td><span class="badge-status-pendiente">Pendiente</span></td>
+                <td class="text-end">
+                  <button class="btn-icon-action approve" title="Aprobar"><i class="bi bi-check-lg"></i></button>
+                  <button class="btn-icon-action reject" title="Rechazar"><i class="bi bi-x-lg"></i></button>
+                </td>
+              </tr>
+              <tr>
+                <td><div class="d-flex align-items-center gap-2"><div class="avatar-patient">SL</div><div class="fw-semibold">Sofía López</div></div></td>
+                <td>Valoración cardiológica</td>
+                <td>Enfermería</td>
+                <td>04/10 - 15:00</td>
+                <td><span class="badge-status-pendiente">Pendiente</span></td>
+                <td class="text-end">
+                  <button class="btn-icon-action approve" title="Aprobar"><i class="bi bi-check-lg"></i></button>
+                  <button class="btn-icon-action reject" title="Rechazar"><i class="bi bi-x-lg"></i></button>
+                </td>
+              </tr>
+              <tr>
+                <td><div class="d-flex align-items-center gap-2"><div class="avatar-patient">JG</div><div class="fw-semibold">José Gómez</div></div></td>
+                <td>Curación de herida</td>
+                <td>Enfermería</td>
+                <td>05/10 - 07:00</td>
+                <td><span class="badge-status-pendiente">Pendiente</span></td>
+                <td class="text-end">
+                  <button class="btn-icon-action approve" title="Aprobar"><i class="bi bi-check-lg"></i></button>
+                  <button class="btn-icon-action reject" title="Rechazar"><i class="bi bi-x-lg"></i></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>
