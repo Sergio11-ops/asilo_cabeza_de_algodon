@@ -84,5 +84,5 @@
     getToken: () => localStorage.getItem('authToken'),
     getUsuario: () => usuario,
     cerrarSesion
-  };
+  };a
 })();
