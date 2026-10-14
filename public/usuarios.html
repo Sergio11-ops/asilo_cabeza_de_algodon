@@ -14,6 +14,7 @@
 <body data-pagina-roles="admin">
   <div class="app-shell">
 
+    <!-- Barra lateral de navegación -->
     <aside class="icon-rail">
       <div class="rail-logo"><img src="imagenes/logo.png" alt="Logo Cabeza de Algodón"></div>
       <nav class="rail-nav">
@@ -39,35 +40,43 @@
           <h1>Gestión de Usuarios</h1>
         </div>
         <div class="header-actions">
-          <button class="icon-btn filled" title="Nuevo usuario"><i class="bi bi-plus-lg"></i></button>
+          <a href="#formSeccion" class="icon-btn filled" title="Ir a nuevo usuario"><i class="bi bi-plus-lg"></i></a>
         </div>
       </header>
 
+      <!-- Alertas dinámicas de retroalimentación -->
+      <div id="alertMensaje" class="alert alert-dismissible fade show d-none" role="alert">
+        <span id="alertTexto"></span>
+        <button type="button" class="btn-close" onclick="document.getElementById('alertMensaje').classList.add('d-none')"></button>
+      </div>
+
+      <!-- Tarjetas Estadísticas -->
       <section class="stat-row">
         <div class="stat-pill tone-brand">
           <div class="stat-icon"><i class="bi bi-people"></i></div>
-          <div><p class="stat-label">Usuarios totales</p><p class="stat-value">18</p></div>
+          <div><p class="stat-label">Usuarios totales</p><p class="stat-value" id="statTotal">0</p></div>
         </div>
         <div class="stat-pill tone-sage">
           <div class="stat-icon"><i class="bi bi-person-check"></i></div>
-          <div><p class="stat-label">Activos</p><p class="stat-value">16</p></div>
+          <div><p class="stat-label">Activos</p><p class="stat-value" id="statActivos">0</p></div>
         </div>
         <div class="stat-pill tone-gold">
           <div class="stat-icon"><i class="bi bi-shield-lock"></i></div>
-          <div><p class="stat-label">Administradores</p><p class="stat-value">3</p></div>
+          <div><p class="stat-label">Administradores</p><p class="stat-value" id="statAdmins">0</p></div>
         </div>
       </section>
 
+      <!-- Tabla de Listado de Usuarios -->
       <section class="panel-card">
         <div class="panel-card-header">
           <h3>Listado de Usuarios</h3>
           <div class="search-bar">
             <i class="bi bi-search"></i>
-            <input type="text" class="form-control" placeholder="Buscar usuario...">
+            <input type="text" id="inputBuscar" class="form-control" placeholder="Buscar por nombre, correo o usuario...">
           </div>
         </div>
         <div class="table-responsive">
-          <table class="table table-custom">
+          <table class="table table-custom align-middle">
             <thead>
               <tr>
                 <th>Usuario</th>
@@ -77,110 +86,11 @@
                 <th class="text-end">Acciones</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="tablaUsuariosBody">
               <tr>
-                <td>
-                  <div class="d-flex align-items-center gap-2">
-                    <div class="avatar-user" style="background-color: var(--brand);">SJ</div>
-                    <div class="fw-semibold">Sergio Juárez</div>
-                  </div>
-                </td>
-                <td>sergio.admin@asilo.org</td>
-                <td><span class="role-badge role-admin">Administrador</span></td>
-                <td><span class="badge-status-activo">Activo</span></td>
-                <td class="text-end">
-                  <button class="btn-icon-action neutral" title="Editar"><i class="bi bi-pencil"></i></button>
-                  <button class="btn-icon-action reject" title="Desactivar"><i class="bi bi-slash-circle"></i></button>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="d-flex align-items-center gap-2">
-                    <div class="avatar-user" style="background-color: var(--sage);">IP</div>
-                    <div class="fw-semibold">Dra. Ixchel Pop</div>
-                  </div>
-                </td>
-                <td>ixchel.pop@asilo.org</td>
-                <td><span class="role-badge role-medico_general">Médico General</span></td>
-                <td><span class="badge-status-activo">Activo</span></td>
-                <td class="text-end">
-                  <button class="btn-icon-action neutral" title="Editar"><i class="bi bi-pencil"></i></button>
-                  <button class="btn-icon-action reject" title="Desactivar"><i class="bi bi-slash-circle"></i></button>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="d-flex align-items-center gap-2">
-                    <div class="avatar-user" style="background-color: #9b6bd6;">ES</div>
-                    <div class="fw-semibold">Dr. Estuardo Say</div>
-                  </div>
-                </td>
-                <td>estuardo.say@asilo.org</td>
-                <td><span class="role-badge role-especialista">Especialista</span></td>
-                <td><span class="badge-status-activo">Activo</span></td>
-                <td class="text-end">
-                  <button class="btn-icon-action neutral" title="Editar"><i class="bi bi-pencil"></i></button>
-                  <button class="btn-icon-action reject" title="Desactivar"><i class="bi bi-slash-circle"></i></button>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="d-flex align-items-center gap-2">
-                    <div class="avatar-user" style="background-color: var(--gold);">LM</div>
-                    <div class="fw-semibold">Lucía Morán</div>
-                  </div>
-                </td>
-                <td>lucia.moran@asilo.org</td>
-                <td><span class="role-badge role-enfermero">Enfermero/a</span></td>
-                <td><span class="badge-status-activo">Activo</span></td>
-                <td class="text-end">
-                  <button class="btn-icon-action neutral" title="Editar"><i class="bi bi-pencil"></i></button>
-                  <button class="btn-icon-action reject" title="Desactivar"><i class="bi bi-slash-circle"></i></button>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="d-flex align-items-center gap-2">
-                    <div class="avatar-user" style="background-color: #2fa3a1;">RM</div>
-                    <div class="fw-semibold">Rosa Montúfar</div>
-                  </div>
-                </td>
-                <td>rosa.laboratorio@asilo.org</td>
-                <td><span class="role-badge role-laboratorio">Laboratorio</span></td>
-                <td><span class="badge-status-activo">Activo</span></td>
-                <td class="text-end">
-                  <button class="btn-icon-action neutral" title="Editar"><i class="bi bi-pencil"></i></button>
-                  <button class="btn-icon-action reject" title="Desactivar"><i class="bi bi-slash-circle"></i></button>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="d-flex align-items-center gap-2">
-                    <div class="avatar-user" style="background-color: var(--rose);">CR</div>
-                    <div class="fw-semibold">Carlos Ramírez</div>
-                  </div>
-                </td>
-                <td>carlos.caja@asilo.org</td>
-                <td><span class="role-badge role-caja">Caja</span></td>
-                <td><span class="badge-status-inactivo">Inactivo</span></td>
-                <td class="text-end">
-                  <button class="btn-icon-action neutral" title="Editar"><i class="bi bi-pencil"></i></button>
-                  <button class="btn-icon-action approve" title="Reactivar"><i class="bi bi-check-circle"></i></button>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="d-flex align-items-center gap-2">
-                    <div class="avatar-user" style="background-color: #4a90d9;">FV</div>
-                    <div class="fw-semibold">Fátima Vásquez</div>
-                  </div>
-                </td>
-                <td>fatima.farmacia@asilo.org</td>
-                <td><span class="role-badge role-farmacia">Farmacia</span></td>
-                <td><span class="badge-status-activo">Activo</span></td>
-                <td class="text-end">
-                  <button class="btn-icon-action neutral" title="Editar"><i class="bi bi-pencil"></i></button>
-                  <button class="btn-icon-action reject" title="Desactivar"><i class="bi bi-slash-circle"></i></button>
+                <td colspan="5" class="text-center py-4 text-muted">
+                  <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                  Cargando usuarios...
                 </td>
               </tr>
             </tbody>
@@ -189,55 +99,122 @@
       </section>
 
       <!-- Formulario de nuevo usuario -->
-      <section class="panel-card">
+      <section class="panel-card" id="formSeccion">
         <div class="form-section-title">
           <span class="icon-circle"><i class="bi bi-person-plus"></i></span>
           Crear nuevo usuario
         </div>
         <form id="formNuevoUsuario">
           <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">Nombre completo</label>
-              <input type="text" class="form-control" placeholder="Ej. Ana Gutiérrez">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Correo electrónico</label>
-              <input type="email" class="form-control" placeholder="usuario@asilo.org">
+            <div class="col-md-4">
+              <label class="form-label">Nombre <span class="text-danger">*</span></label>
+              <input type="text" id="nombre" class="form-control" required placeholder="Ej. Ana">
             </div>
             <div class="col-md-4">
-              <label class="form-label">Rol</label>
-              <select class="form-select">
-                <option selected disabled>Seleccionar rol</option>
+              <label class="form-label">Apellido <span class="text-danger">*</span></label>
+              <input type="text" id="apellido" class="form-control" required placeholder="Ej. Gutiérrez">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Nombre de Usuario <span class="text-danger">*</span></label>
+              <input type="text" id="usuario" class="form-control" required placeholder="Ej. agutierrez">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Correo electrónico <span class="text-danger">*</span></label>
+              <input type="email" id="correo" class="form-control" required placeholder="usuario@asilo.org">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Contraseña <span class="text-danger">*</span></label>
+              <input type="password" id="password" class="form-control" required minlength="6" placeholder="••••••••">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Rol <span class="text-danger">*</span></label>
+              <select id="rol" class="form-select" required>
+                <option value="" selected disabled>Seleccionar rol</option>
                 <option value="admin">Administrador</option>
                 <option value="medico_general">Médico General</option>
-                <option value="especialista">Especialista</option>
+                <option value="especialista">Médico Especialista</option>
                 <option value="enfermero">Enfermero/a</option>
                 <option value="laboratorio">Laboratorio</option>
                 <option value="farmacia">Farmacia</option>
-                <option value="caja">Caja</option>
+                <option value="caja">Caja / Cobros</option>
               </select>
             </div>
-            <div class="col-md-4">
-              <label class="form-label">Contraseña temporal</label>
-              <input type="password" class="form-control" placeholder="••••••••">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Estado</label>
-              <select class="form-select">
-                <option>Activo</option>
-                <option>Inactivo</option>
+            <div class="col-md-6">
+              <label class="form-label">Estado <span class="text-danger">*</span></label>
+              <select id="activo" class="form-select" required>
+                <option value="1" selected>Activo</option>
+                <option value="0">Inactivo</option>
               </select>
             </div>
           </div>
           <div class="d-flex justify-content-end gap-2 mt-4">
-            <button type="button" class="btn-outline-brand">Cancelar</button>
-            <button type="submit" class="btn-solid-brand">Crear usuario</button>
+            <button type="reset" class="btn-outline-brand">Cancelar</button>
+            <button type="submit" class="btn-solid-brand" id="btnGuardar">Crear usuario</button>
           </div>
         </form>
       </section>
     </main>
+    <!-- Modal para Editar Usuario -->
+<div class="modal fade" id="modalEditarUsuario" tabindex="-1" aria-labelledby="modalEditarUsuarioLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalEditarUsuarioLabel"><i class="bi bi-pencil-square"></i> Editar Usuario</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="formEditarUsuario">
+        <div class="modal-body">
+          <input type="hidden" id="edit_id_usuario">
+          
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label font-weight-bold">Nombre <span class="text-danger">*</span></label>
+              <input type="text" id="edit_nombre" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label font-weight-bold">Apellido <span class="text-danger">*</span></label>
+              <input type="text" id="edit_apellido" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label font-weight-bold">Nombre de Usuario <span class="text-danger">*</span></label>
+              <input type="text" id="edit_usuario" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label font-weight-bold">Correo Electrónico <span class="text-danger">*</span></label>
+              <input type="email" id="edit_correo" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label font-weight-bold">Rol <span class="text-danger">*</span></label>
+              <select id="edit_rol" class="form-select" required>
+                <option value="admin">Administrador</option>
+                <option value="medico_general">Médico General</option>
+                <option value="especialista">Médico Especialista</option>
+                <option value="enfermero">Enfermero/a</option>
+                <option value="laboratorio">Laboratorio</option>
+                <option value="farmacia">Farmacia</option>
+                <option value="caja">Caja / Cobros</option>
+              </select>
+            </div>
+            <div class="col-md-12">
+              <label class="form-label font-weight-bold">Nueva Contraseña <small class="text-muted">(Dejar en blanco para mantener la actual)</small></label>
+              <input type="password" id="edit_password" class="form-control" placeholder="••••••••" minlength="6">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btnActualizarUsuario"><i class="bi bi-save"></i> Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Asegúrate de incluir el JS de Bootstrap antes de auth.js y usuarios.js si no lo tenías -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </div>
 
   <script src="js/auth.js"></script>
+  <script src="js/usuarios.js"></script>
 </body>
 </html>
