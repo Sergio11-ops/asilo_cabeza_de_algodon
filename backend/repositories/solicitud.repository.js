@@ -1,0 +1,138 @@
+// backend/repositories/solicitud.repository.js
+const db = require('../config/db');
+
+class SolicitudRepository {
+    async obtenerSolicitudes(estado = 'todas') {
+        let query = `
+            SELECT 
+                s.id_solicitud,
+                s.id_paciente,
+                CONCAT(p.nombres, ' ', p.apellidos) AS paciente_nombre,
+                p.expediente,
+                s.id_especialidad,
+                e.nombre AS especialidad_nombre,
+                s.motivo,
+                s.fecha_solicitud,
+                s.estado,
+                CONCAT(u_med.nombre, ' ', u_med.apellido) AS medico_referente_nombre
+            FROM solicitud_medica s
+            INNER JOIN paciente p ON s.id_paciente = p.id_paciente
+            INNER JOIN especialidad e ON s.id_especialidad = e.id_especialidad
+            INNER JOIN medico m ON s.id_medico_general = m.id_medico
+            INNER JOIN usuario u_med ON m.id_usuario = u_med.id_usuario
+        `;
+
+        const params = [];
+        if (estado && estado !== 'todas') {
+            query += ` WHERE LOWER(s.estado) = ?`;
+            params.push(estado.toLowerCase());
+        }
+
+        query += ` ORDER BY s.fecha_solicitud DESC`;
+
+        const [filas] = await db.query(query, params);
+        return filas;
+    }
+
+    async obtenerIdMedicoPorUsuario(idUsuario) {
+        // Buscar id_medico asignado a este usuario
+        const [filas] = await db.query(
+            `SELECT id_medico FROM medico WHERE id_usuario = ? LIMIT 1`,
+            [idUsuario]
+        );
+        if (filas.length > 0) {
+            return filas[0].id_medico;
+        }
+        // Fallback: obtener el primer médico general de la BD
+        const [fallback] = await db.query(
+            `SELECT id_medico FROM medico WHERE tipo = 'general' LIMIT 1`
+        );
+        return fallback.length > 0 ? fallback[0].id_medico : null;
+    }
+
+    async crearSolicitud(datos) {
+        const query = `
+            INSERT INTO solicitud_medica 
+                (id_paciente, id_medico_general, id_especialidad, motivo, estado, fecha_solicitud)
+            VALUES (?, ?, ?, ?, 'pendiente', NOW())
+        `;
+        const [resultado] = await db.query(query, [
+            datos.id_paciente,
+            datos.id_medico_general,
+            datos.id_especialidad,
+            datos.motivo
+        ]);
+
+        return resultado.insertId;
+    }
+
+    async cambiarEstado(idSolicitud, estado) {
+        // Mapear estados a tu ENUM: 'pendiente','referida','programada','atendida','cancelada'
+        let estadoEnum = estado.toLowerCase();
+        if (estadoEnum === 'aprobada') estadoEnum = 'programada';
+        if (estadoEnum === 'rechazada') estadoEnum = 'cancelada';
+
+        const query = `UPDATE solicitud_medica SET estado = ? WHERE id_solicitud = ?`;
+        const [resultado] = await db.query(query, [estadoEnum, idSolicitud]);
+        return resultado.affectedRows > 0;
+    }
+
+    async obtenerEspecialidades() {
+        const [filas] = await db.query(`SELECT id_especialidad, nombre FROM especialidad ORDER BY nombre ASC`);
+        return filas;
+    }
+
+    async obtenerEnfermeros() {
+        const [filas] = await db.query(`
+            SELECT id_usuario, CONCAT(nombre, ' ', apellido) AS nombre_completo 
+            FROM usuario 
+            WHERE LOWER(rol) = 'enfermero' AND activo = 1 
+            ORDER BY nombre ASC
+        `);
+        return filas;
+    }
+
+    async obtenerMedicosEspecialistas() {
+        const [filas] = await db.query(`
+            SELECT m.id_medico, CONCAT(u.nombre, ' ', u.apellido) AS nombre_completo, e.nombre AS especialidad
+            FROM medico m
+            INNER JOIN usuario u ON m.id_usuario = u.id_usuario
+            LEFT JOIN especialidad e ON m.id_especialidad = e.id_especialidad
+            WHERE u.activo = 1 AND m.tipo = 'especialista'
+            ORDER BY u.nombre ASC
+        `);
+        return filas;
+    }
+
+    async obtenerDatosNotificacion(idPaciente) {
+        const query = `
+            SELECT 
+                CONCAT(p.nombres, ' ', p.apellidos) AS paciente_nombre,
+                fam.correo AS familiar_correo,
+                CONCAT(fam.nombres, ' ', fam.apellidos) AS familiar_nombre
+            FROM paciente p
+            LEFT JOIN paciente_familiar pf ON p.id_paciente = pf.id_paciente AND pf.es_contacto_principal = 1
+            LEFT JOIN familiar fam ON pf.id_familiar = fam.id_familiar
+            WHERE p.id_paciente = ?
+            LIMIT 1
+        `;
+        const [filas] = await db.query(query, [idPaciente]);
+        return filas[0] || null;
+    }
+
+async obtenerEspecialidadPorId(idEspecialidad) {
+    const [filas] = await db.query(`SELECT nombre FROM especialidad WHERE id_especialidad = ?`, [idEspecialidad]);
+    return filas[0] ? filas[0].nombre : 'Especialidad médica';
+}
+
+async obtenerNombreUsuarioPorId(idUsuario) {
+    if (!idUsuario) return 'Personal de Enfermería';
+    const [filas] = await db.query(
+        `SELECT CONCAT(nombre, ' ', apellido) AS nombre_completo FROM usuario WHERE id_usuario = ?`, 
+        [idUsuario]
+    );
+    return filas[0] ? filas[0].nombre_completo : 'Personal de Enfermería';
+}
+}
+
+module.exports = new SolicitudRepository();

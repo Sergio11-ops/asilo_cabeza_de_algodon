@@ -7,6 +7,8 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth.routes');
 const usuariosRoutes = require('./routes/usuarios.routes');
 const pacienteRoutes = require('./routes/paciente.routes');
+const solicitudRoutes = require('./routes/solicitud.routes');
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +28,7 @@ console.log('usuariosRoutes:', typeof usuariosRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/pacientes', pacienteRoutes);
+app.use('/api/solicitudes', solicitudRoutes);
 
 // Servidor escuchando
 app.listen(PORT, () => {
