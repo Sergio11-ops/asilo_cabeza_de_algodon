@@ -119,28 +119,33 @@
           <div class="modal-body">
             <div class="row g-3">
               <div class="col-md-6">
-                <label class="form-label">Paciente Residente *</label>
+                <label class="form-label fw-semibold">Paciente Residente *</label>
                 <select class="form-select" id="selectPaciente" required>
                   <option value="" disabled selected>Cargando pacientes...</option>
                 </select>
               </div>
 
               <div class="col-md-6">
-                <label class="form-label">Especialidad Requerida *</label>
-                <select class="form-select" id="selectEspecialidad" required>
-                  <option value="" disabled selected>Cargando especialidades...</option>
-                </select>
+                <label class="form-label fw-semibold">Especialidad Requerida *</label>
+                <div class="input-group">
+                  <select class="form-select" id="selectEspecialidad" required>
+                    <option value="" disabled selected>Cargando especialidades...</option>
+                  </select>
+                  <button type="button" class="btn btn-outline-primary" id="btnNuevaEspecialidad" title="Agregar Nueva Especialidad">
+                    <i class="bi bi-plus-lg"></i> Nueva
+                  </button>
+                </div>
               </div>
 
               <div class="col-md-6">
-                <label class="form-label">Enfermero(a) Acompañante *</label>
+                <label class="form-label fw-semibold">Enfermero(a) Acompañante *</label>
                 <select class="form-select" id="selectEnfermero" required>
                   <option value="" disabled selected>Cargando personal de enfermería...</option>
                 </select>
               </div>
 
               <div class="col-md-6">
-                <label class="form-label">Prioridad</label>
+                <label class="form-label fw-semibold">Prioridad</label>
                 <select class="form-select" id="prioridadSolicitud">
                   <option value="Normal" selected>Normal</option>
                   <option value="Urgente">Urgente</option>
@@ -148,7 +153,7 @@
               </div>
 
               <div class="col-12">
-                <label class="form-label">Motivo de la remisión médica *</label>
+                <label class="form-label fw-semibold">Motivo de la remisión médica *</label>
                 <textarea class="form-control" id="motivoSolicitud" rows="3" placeholder="Describa los síntomas o razón por la que se remite al especialista..." required></textarea>
               </div>
             </div>
@@ -173,21 +178,14 @@
         <form id="formAprobarSolicitud">
           <div class="modal-body">
             <input type="hidden" id="aprobar_id_solicitud">
-            
-            <div class="mb-3">
-              <label class="form-label">Médico Especialista *</label>
-              <select class="form-select" id="selectMedicoEspecialista" required>
-                <option value="" disabled selected>Seleccionar médico de la fundación...</option>
-              </select>
-            </div>
 
             <div class="mb-3">
-              <label class="form-label">Fecha y Hora Programada *</label>
+              <label class="form-label fw-semibold">Fecha y Hora Programada *</label>
               <input type="datetime-local" class="form-control" id="fechaHoraCita" required>
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Observaciones de la Fundación</label>
+              <label class="form-label fw-semibold">Observaciones de la Fundación</label>
               <textarea class="form-control" id="observacionesCita" rows="2" placeholder="Indicaciones para el traslado o atención..."></textarea>
             </div>
           </div>

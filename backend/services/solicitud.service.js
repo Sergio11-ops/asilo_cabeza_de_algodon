@@ -27,7 +27,7 @@ class SolicitudService {
         // 1. Insertar solicitud en la base de datos
         const idInsertado = await solicitudRepository.crearSolicitud(datosSolicitud);
 
-        // 2. Obtener nombres reales de Especialidad y Enfermero para el Correo
+       // 2. Obtener nombres reales, enviar correo y registrar en la bitácora (notificacion_correo)
         try {
             const infoNotif = await solicitudRepository.obtenerDatosNotificacion(datosSolicitud.id_paciente);
             const nombreEspecialidad = await solicitudRepository.obtenerEspecialidadPorId(datosSolicitud.id_especialidad);
@@ -35,7 +35,10 @@ class SolicitudService {
 
             if (infoNotif && infoNotif.familiar_correo) {
                 const { enviarNotificacionFamiliar } = require('../utils/emailService');
-                await enviarNotificacionFamiliar({
+                const asunto = `Notificación Médica: Remisión de ${infoNotif.paciente_nombre || 'Paciente'}`;
+
+                // 1. Enviar e-mail
+                const exito = await enviarNotificacionFamiliar({
                     correoFamiliar: infoNotif.familiar_correo,
                     nombreFamiliar: infoNotif.familiar_nombre || 'Familiar',
                     nombrePaciente: infoNotif.paciente_nombre || 'Paciente',
@@ -43,9 +46,21 @@ class SolicitudService {
                     motivo: datosSolicitud.motivo,
                     enfermeroNombre: nombreEnfermero
                 });
+
+                // 2. Guardar registro en la tabla notificacion_correo (RF-22)
+                if (infoNotif.id_familiar) {
+                    await solicitudRepository.registrarNotificacionCorreo({
+                        idSolicitud: idInsertado,
+                        idFamiliar: infoNotif.id_familiar,
+                        correoDestino: infoNotif.familiar_correo,
+                        asunto: asunto,
+                        estado: exito ? 'enviado' : 'error',
+                        mensajeError: exito ? null : 'Fallo en la entrega del servidor SMTP'
+                    });
+                }
             }
         } catch (e) {
-            console.warn('⚠️ No se pudo enviar el correo de notificación:', e.message);
+            console.warn('⚠️ No se pudo procesar o registrar la notificación por correo:', e.message);
         }
 
         return { id_solicitud: idInsertado, mensaje: 'Solicitud médica registrada correctamente.' };
@@ -69,6 +84,16 @@ class SolicitudService {
         ]);
         return { especialidades, enfermeros, medicos };
     }
+async crearEspecialidad(nombre) {
+        if (!nombre || !nombre.trim()) {
+            const err = new Error('El nombre de la especialidad es obligatorio.');
+            err.status = 400;
+            throw err;
+        }
+        return await solicitudRepository.crearEspecialidad(nombre);
+    }
+
+    
 }
 
 module.exports = new SolicitudService();

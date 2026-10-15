@@ -39,28 +39,53 @@
           <h1>Agenda Fundación</h1>
         </div>
         <div class="header-actions">
-          <button class="icon-btn dashed" title="Nueva cita"><i class="bi bi-plus-lg"></i></button>
+          <button id="btnNuevaCitaModal" class="icon-btn dashed" title="Nueva Cita / Programar" data-bs-toggle="modal" data-bs-target="#modalProgramarCita">
+            <i class="bi bi-plus-lg"></i>
+          </button>
         </div>
       </header>
+
+      <!-- SECCIÓN: Solicitudes Pendientes de Asignar Horario -->
+      <section class="panel-card mb-4">
+        <div class="panel-card-header">
+          <h3><i class="bi bi-hourglass-split me-2 text-warning"></i>Solicitudes Médicas Pendientes de Programar</h3>
+          <span id="pillCountPendientes" class="pill-count">0 pendientes</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Paciente</th>
+                <th>Especialidad Requerida</th>
+                <th>Motivo de Remisión</th>
+                <th>Médico Referente</th>
+                <th>Fecha Solicitud</th>
+                <th class="text-end">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tablaSolicitudesPendientes">
+              <tr>
+                <td colspan="6" class="text-center text-muted py-3">Cargando solicitudes pendientes...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <div class="row g-3">
         <div class="col-lg-7">
           <section class="panel-card calendar-card">
             <div class="calendar-month">
-              <button class="nav-arrow"><i class="bi bi-chevron-left"></i></button>
-              <span>Septiembre 2026</span>
-              <button class="nav-arrow"><i class="bi bi-chevron-right"></i></button>
+              <button class="nav-arrow" id="btnMesAnterior"><i class="bi bi-chevron-left"></i></button>
+              <span id="lblMesAnio">Septiembre 2026</span>
+              <button class="nav-arrow" id="btnMesSiguiente"><i class="bi bi-chevron-right"></i></button>
             </div>
             <table class="mini-calendar full-calendar">
               <thead>
                 <tr><th>Lu</th><th>Ma</th><th>Mi</th><th>Ju</th><th>Vi</th><th>Sa</th><th>Do</th></tr>
               </thead>
-              <tbody>
-                <tr><td class="muted">31</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
-                <tr><td>7</td><td>8</td><td>9</td><td>10</td><td class="has-event"><span>11</span></td><td>12</td><td>13</td></tr>
-                <tr><td>14</td><td class="has-event"><span>15</span></td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td></tr>
-                <tr><td class="today"><span>21</span></td><td>22</td><td class="has-event"><span>23</span></td><td>24</td><td>25</td><td>26</td><td>27</td></tr>
-                <tr><td>28</td><td>29</td><td>30</td><td class="muted">1</td><td class="muted">2</td><td class="muted">3</td><td class="muted">4</td></tr>
+              <tbody id="gridCalendario">
+                <!-- Se llena dinámicamente con JavaScript -->
               </tbody>
             </table>
           </section>
@@ -69,38 +94,11 @@
         <div class="col-lg-5">
           <section class="panel-card">
             <div class="panel-card-header">
-              <h3>Citas de hoy · 21 sept.</h3>
-              <span class="pill-count">14 citas</span>
+              <h3 id="tituloCitasDia">Citas de hoy</h3>
+              <span id="pillCountCitasDia" class="pill-count">0 citas</span>
             </div>
-            <ul class="activity-list">
-              <li>
-                <div class="activity-icon" style="background-color: var(--brand-tint); color: var(--brand);"><i class="bi bi-clock"></i></div>
-                <div>
-                  <div class="activity-title">08:00 · Marta Reyes</div>
-                  <div class="activity-date">Control de diabetes — Dra. Ixchel Pop</div>
-                </div>
-              </li>
-              <li>
-                <div class="activity-icon" style="background-color: var(--sage-tint); color: var(--sage);"><i class="bi bi-clock"></i></div>
-                <div>
-                  <div class="activity-title">09:30 · Efraín Castillo</div>
-                  <div class="activity-date">Terapia respiratoria — Enfermería</div>
-                </div>
-              </li>
-              <li>
-                <div class="activity-icon" style="background-color: var(--gold-tint); color: var(--gold);"><i class="bi bi-clock"></i></div>
-                <div>
-                  <div class="activity-title">11:00 · Sofía López</div>
-                  <div class="activity-date">Valoración cardiológica — Dr. Estuardo Say</div>
-                </div>
-              </li>
-              <li>
-                <div class="activity-icon" style="background-color: var(--rose-tint); color: var(--rose);"><i class="bi bi-clock"></i></div>
-                <div>
-                  <div class="activity-title">14:30 · José Gómez</div>
-                  <div class="activity-date">Curación de herida — Enfermería</div>
-                </div>
-              </li>
+            <ul class="activity-list" id="listaCitasDia">
+              <li class="text-muted small">Selecciona un día en el calendario para ver las citas programadas.</li>
             </ul>
           </section>
         </div>
@@ -108,6 +106,60 @@
     </main>
   </div>
 
+  <!-- MODAL PROGRAMAR CITA MÉDICA (Tabla: cita_medica) -->
+  <div class="modal fade" id="modalProgramarCita" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold"><i class="bi bi-calendar-plus me-2 text-primary"></i>Programar Cita de Especialista</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="formProgramarCita">
+          <div class="modal-body">
+            
+            <div class="mb-3">
+              <label for="selectSolicitudCita" class="form-label fw-semibold">Solicitud Médica Pendiente <span class="text-danger">*</span></label>
+              <select class="form-select" id="selectSolicitudCita" required>
+                <option value="" disabled selected>Seleccione una solicitud...</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="fechaHoraCita" class="form-label fw-semibold">Fecha y Hora de la Cita <span class="text-danger">*</span></label>
+              <input type="datetime-local" class="form-control" id="fechaHoraCita" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="selectEspecialistaCita" class="form-label fw-semibold">Médico Especialista (Fundación) <span class="text-danger">*</span></label>
+              <select class="form-select" id="selectEspecialistaCita" required>
+                <option value="" disabled selected>Seleccione especialista...</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="selectEnfermeroCita" class="form-label fw-semibold">Enfermero(a) Acompañante</label>
+              <select class="form-select" id="selectEnfermeroCita">
+                <option value="">Ninguno asignado</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="observacionesCita" class="form-label fw-semibold">Observaciones / Indicaciones de traslado</label>
+              <textarea class="form-control" id="observacionesCita" rows="2" placeholder="Ej. El paciente requiere transporte con oxígeno..."></textarea>
+            </div>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary" id="btnGuardarCita">Confirmar y Agendar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/agenda.js"></script>
 </body>
 </html>

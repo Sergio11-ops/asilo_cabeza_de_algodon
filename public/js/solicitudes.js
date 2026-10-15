@@ -107,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (selectEnf && dataCombos.datos) {
                 selectEnf.innerHTML = '<option value="" disabled selected>Seleccionar enfermero(a)...</option>' +
                     dataCombos.datos.enfermeros.map(e => `<option value="${e.id_usuario}">${e.nombre_completo}</option>`).join('');
+                    
             }
 
         } catch (e) {
@@ -159,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td><span class="badge bg-light text-dark border">${s.especialidad_nombre}</span></td>
                     <td><small>${s.motivo}</small></td>
-                    <td><small><i class="bi bi-person-badge me-1"></i>${s.medico_referente_nombre || 'Médico Gral.'}</small></td>
+                    <td><i class="bi bi-person-badge me-1"></i>${s.enfermero_nombre || 'No asignado'}</td>
                     <td>${fechaFmt}</td>
                     <td><span class="${badgeClass}">${s.estado}</span></td>
                     <td class="text-end">
@@ -284,4 +285,44 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Error al cancelar solicitud: ' + err.message);
         }
     };
+
+
+    // Listener para crear especialidad rápida
+const btnNuevaEsp = document.getElementById('btnNuevaEspecialidad');
+if (btnNuevaEsp) {
+    btnNuevaEsp.addEventListener('click', async () => {
+        const nombreEsp = prompt('Ingrese el nombre de la nueva especialidad (Ej: Dermatología, Neurología):');
+        if (!nombreEsp || !nombreEsp.trim()) return;
+
+        try {
+            const token = localStorage.getItem('authToken');
+            const res = await fetch('/api/solicitudes/especialidades', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ nombre: nombreEsp.trim() })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.mensaje);
+
+            alert('¡Especialidad agregada con éxito!');
+
+            // Recargar el combo y seleccionar la especialidad recién creada
+            if (typeof cargarCombos === 'function') {
+                await cargarCombos();
+            }
+            
+            const selectEsp = document.getElementById('selectEspecialidad');
+            if (selectEsp && data.datos.id_especialidad) {
+                selectEsp.value = data.datos.id_especialidad;
+            }
+
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    });
+}
 });

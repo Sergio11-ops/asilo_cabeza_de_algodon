@@ -41,6 +41,23 @@ class SolicitudController {
             next(error);
         }
     }
+
+    async crearEspecialidad(req, res) {
+        try {
+            const { nombre } = req.body;
+            const nuevaEspecialidad = await solicitudService.crearEspecialidad(nombre);
+            res.status(201).json({ 
+                ok: true, 
+                datos: nuevaEspecialidad, 
+                mensaje: 'Especialidad registrada correctamente.' 
+            });
+        } catch (error) {
+            if (error.code === 'ER_DUP_ENTRY') {
+                return res.status(400).json({ ok: false, mensaje: 'Esta especialidad ya existe en el sistema.' });
+            }
+            res.status(error.status || 500).json({ ok: false, mensaje: error.message });
+        }
+    }
 }
 
 module.exports = new SolicitudController();

@@ -10,5 +10,6 @@ router.get('/', solicitudController.listar);
 router.get('/combos', solicitudController.combos);
 router.post('/', solicitudController.crear);
 router.patch('/:id/estado', solicitudController.cambiarEstado);
+router.post('/especialidades', (req, res) => solicitudController.crearEspecialidad(req, res));
 
 module.exports = router;
