@@ -9,6 +9,7 @@ const usuariosRoutes = require('./routes/usuarios.routes');
 const pacienteRoutes = require('./routes/paciente.routes');
 const solicitudRoutes = require('./routes/solicitud.routes');
 const citaRoutes = require('./routes/cita.routes');
+const laboratorioRoutes = require('./routes/laboratorio.routes');
 
 
 const app = express();
@@ -31,6 +32,7 @@ app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/pacientes', pacienteRoutes);
 app.use('/api/solicitudes', solicitudRoutes);
 app.use('/api/citas', citaRoutes);
+app.use('/api/laboratorio', laboratorioRoutes);
 
 // Servidor escuchando
 app.listen(PORT, () => {

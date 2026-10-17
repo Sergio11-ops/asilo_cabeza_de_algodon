@@ -16,22 +16,6 @@ const usuariosIniciales = [
         usuario: 'admin',
         clavePlana: 'Admin#2026!',
         rol: 'admin'
-    },
-    {
-        nombre: 'Carlos',
-        apellido: 'Mendoza',
-        correo: 'medico@asilo.com',
-        usuario: 'carlos_medico',
-        clavePlana: 'Medico.Carlos2026',
-        rol: 'medico_general'
-    },
-    {
-        nombre: 'Ana',
-        apellido: 'Gómez',
-        correo: 'enfermeria@asilo.com',
-        usuario: 'ana_enfermera',
-        clavePlana: 'Ana.Enfermera123',
-        rol: 'enfermero'
     }
 ];
 

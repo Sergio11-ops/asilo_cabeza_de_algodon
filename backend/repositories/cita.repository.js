@@ -2,29 +2,32 @@
 const db = require('../config/db');
 
 class CitaRepository {
-    async obtenerSolicitudesPendientes() {
-        const query = `
-            SELECT 
-                s.id_solicitud,
-                s.id_paciente,
-                CONCAT(p.nombres, ' ', p.apellidos) AS paciente_nombre,
-                p.expediente,
-                s.id_especialidad,
-                e.nombre AS especialidad_nombre,
-                s.motivo,
-                s.fecha_solicitud,
-                CONCAT(u_med.nombre, ' ', u_med.apellido) AS medico_referente
-            FROM solicitud_medica s
-            INNER JOIN paciente p ON s.id_paciente = p.id_paciente
-            INNER JOIN especialidad e ON s.id_especialidad = e.id_especialidad
-            INNER JOIN medico m ON s.id_medico_general = m.id_medico
-            INNER JOIN usuario u_med ON m.id_usuario = u_med.id_usuario
-            WHERE s.estado IN ('pendiente', 'referida')
-            ORDER BY s.fecha_solicitud ASC
-        `;
-        const [filas] = await db.query(query);
-        return filas;
-    }
+async obtenerSolicitudesPendientes() {
+    const query = `
+        SELECT 
+            s.id_solicitud,
+            s.id_paciente,
+            CONCAT(p.nombres, ' ', p.apellidos) AS paciente_nombre,
+            p.expediente,
+            s.id_especialidad,
+            e.nombre AS especialidad_nombre,
+            s.motivo,
+            s.fecha_solicitud,
+            s.id_enfermero,
+            CONCAT(u_enf.nombre, ' ', u_enf.apellido) AS enfermero_nombre,
+            COALESCE(CONCAT(u_med.nombre, ' ', u_med.apellido), CONCAT(m.nombre, ' ', m.apellido)) AS medico_referente
+        FROM solicitud_medica s
+        INNER JOIN paciente p ON s.id_paciente = p.id_paciente
+        INNER JOIN especialidad e ON s.id_especialidad = e.id_especialidad
+        INNER JOIN medico m ON s.id_medico_general = m.id_medico
+        LEFT JOIN usuario u_med ON m.id_usuario = u_med.id_usuario
+        LEFT JOIN usuario u_enf ON s.id_enfermero = u_enf.id_usuario
+        WHERE s.estado IN ('pendiente', 'referida')
+        ORDER BY s.fecha_solicitud ASC
+    `;
+    const [filas] = await db.query(query);
+    return filas;
+}
 
     async obtenerIdUsuarioValido(idSolicitado) {
         if (idSolicitado) {
@@ -34,9 +37,52 @@ class CitaRepository {
             );
             if (filas.length > 0) return filas[0].id_usuario;
         }
-        // Fallback: si no se detecta ID en token, tomar el primer usuario activo registrado
         const [fallback] = await db.query(`SELECT id_usuario FROM usuario WHERE activo = 1 LIMIT 1`);
         return fallback.length > 0 ? fallback[0].id_usuario : 1;
+    }
+
+    async crearMedicoEspecialista(datosMedico, idSolicitud) {
+        const connection = await db.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            // Obtener id_especialidad desde la solicitud si no viene especificada
+            let idEspecialidad = datosMedico.id_especialidad;
+            if (!idEspecialidad && idSolicitud) {
+                const [sol] = await connection.query(
+                    `SELECT id_especialidad FROM solicitud_medica WHERE id_solicitud = ?`,
+                    [idSolicitud]
+                );
+                if (sol.length > 0) {
+                    idEspecialidad = sol[0].id_especialidad;
+                }
+            }
+
+            if (!idEspecialidad) {
+                throw new Error('No se pudo determinar la especialidad para el registro del médico.');
+            }
+
+            // Insertar únicamente en la tabla medico (id_usuario en NULL)
+            const queryMedico = `
+                INSERT INTO medico (id_usuario, nombre, apellido, colegiado, tipo, id_especialidad)
+                VALUES (NULL, ?, ?, ?, 'especialista', ?)
+            `;
+            const [resMedico] = await connection.query(queryMedico, [
+                datosMedico.nombres,
+                datosMedico.apellidos,
+                datosMedico.colegiado,
+                idEspecialidad
+            ]);
+
+            await connection.commit();
+            return resMedico.insertId;
+
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
     }
 
     async crearCita(datos) {
@@ -44,10 +90,8 @@ class CitaRepository {
         try {
             await connection.beginTransaction();
 
-            // Garantizar que el ID de usuario exista en la tabla 'usuario'
             const idUsuarioValido = await this.obtenerIdUsuarioValido(datos.id_usuario_asigna);
 
-            // 1. Insertar la cita en cita_medica
             const queryCita = `
                 INSERT INTO cita_medica 
                     (id_solicitud, fecha_hora, id_medico, id_enfermero, observaciones, id_usuario_asigna)
@@ -62,7 +106,6 @@ class CitaRepository {
                 idUsuarioValido
             ]);
 
-            // 2. Actualizar estado de solicitud_medica a 'programada'
             const queryUpdate = `UPDATE solicitud_medica SET estado = 'programada' WHERE id_solicitud = ?`;
             await connection.query(queryUpdate, [datos.id_solicitud]);
 
@@ -88,14 +131,14 @@ class CitaRepository {
                 p.expediente,
                 e.nombre AS especialidad_nombre,
                 s.motivo,
-                CONCAT(u_med.nombre, ' ', u_med.apellido) AS especialista_nombre,
+                COALESCE(CONCAT(u_med.nombre, ' ', u_med.apellido), CONCAT(m.nombre, ' ', m.apellido)) AS especialista_nombre,
                 CONCAT(u_enf.nombre, ' ', u_enf.apellido) AS enfermero_nombre
             FROM cita_medica c
             INNER JOIN solicitud_medica s ON c.id_solicitud = s.id_solicitud
             INNER JOIN paciente p ON s.id_paciente = p.id_paciente
             INNER JOIN especialidad e ON s.id_especialidad = e.id_especialidad
             INNER JOIN medico m ON c.id_medico = m.id_medico
-            INNER JOIN usuario u_med ON m.id_usuario = u_med.id_usuario
+            LEFT JOIN usuario u_med ON m.id_usuario = u_med.id_usuario
             LEFT JOIN usuario u_enf ON c.id_enfermero = u_enf.id_usuario
             WHERE c.fecha_hora BETWEEN ? AND ?
             ORDER BY c.fecha_hora ASC

@@ -11,6 +11,15 @@ class PacienteController {
         }
     }
 
+    async obtenerCatalogos(req, res) {
+        try {
+            const catalogos = await pacienteService.obtenerCatalogos();
+            return res.status(200).json({ ok: true, datos: catalogos });
+        } catch (error) {
+            return res.status(500).json({ ok: false, mensaje: error.message });
+        }
+    }
+
     async obtenerPacientePorId(req, res) {
         try {
             const paciente = await pacienteService.obtenerPacientePorId(req.params.id);

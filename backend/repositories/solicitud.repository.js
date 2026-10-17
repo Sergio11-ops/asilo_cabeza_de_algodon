@@ -14,13 +14,16 @@ class SolicitudRepository {
                 s.motivo,
                 s.fecha_solicitud,
                 s.estado,
-                CONCAT(u_med.nombre, ' ', u_med.apellido) AS medico_referente_nombre,
+                COALESCE(
+                    CONCAT(u_med.nombre, ' ', u_med.apellido), 
+                    CONCAT(m.nombre, ' ', m.apellido)
+                ) AS medico_referente_nombre,
                 CONCAT(u_enf.nombre, ' ', u_enf.apellido) AS enfermero_nombre
             FROM solicitud_medica s
             INNER JOIN paciente p ON s.id_paciente = p.id_paciente
             INNER JOIN especialidad e ON s.id_especialidad = e.id_especialidad
             INNER JOIN medico m ON s.id_medico_general = m.id_medico
-            INNER JOIN usuario u_med ON m.id_usuario = u_med.id_usuario
+            LEFT JOIN usuario u_med ON m.id_usuario = u_med.id_usuario
             LEFT JOIN usuario u_enf ON s.id_enfermero = u_enf.id_usuario
         `;
 
@@ -36,19 +39,34 @@ class SolicitudRepository {
         return filas;
     }
 
-    async obtenerIdMedicoPorUsuario(idUsuario) {
-        const [filas] = await db.query(
-            `SELECT id_medico FROM medico WHERE id_usuario = ? LIMIT 1`,
-            [idUsuario]
-        );
-        if (filas.length > 0) {
-            return filas[0].id_medico;
-        }
-        const [fallback] = await db.query(
-            `SELECT id_medico FROM medico WHERE tipo = 'general' LIMIT 1`
-        );
-        return fallback.length > 0 ? fallback[0].id_medico : null;
+    // backend/repositories/solicitud.repository.js
+
+async obtenerIdMedicoPorUsuario(idUsuario) {
+    // 1. Buscar si ya existe el médico asociado al usuario
+    const [filas] = await db.query(
+        `SELECT id_medico FROM medico WHERE id_usuario = ? LIMIT 1`,
+        [idUsuario]
+    );
+    if (filas.length > 0) {
+        return filas[0].id_medico;
     }
+
+    // 2. Buscar si hay algún médico general registrado
+    const [fallback] = await db.query(
+        `SELECT id_medico FROM medico WHERE tipo = 'general' LIMIT 1`
+    );
+    if (fallback.length > 0) {
+        return fallback[0].id_medico;
+    }
+
+    // 3. Si la tabla está totalmente vacía, registrar automáticamente al usuario logueado como Médico General
+    const [resAuto] = await db.query(
+        `INSERT INTO medico (id_usuario, colegiado, tipo, id_especialidad) VALUES (?, 'COL-GEN-AUTO', 'general', NULL)`,
+        [idUsuario]
+    );
+
+    return resAuto.insertId;
+}
 
     async crearSolicitud(datos) {
         const query = `
@@ -94,12 +112,19 @@ class SolicitudRepository {
 
     async obtenerMedicosEspecialistas() {
         const [filas] = await db.query(`
-            SELECT m.id_medico, CONCAT(u.nombre, ' ', u.apellido) AS nombre_completo, e.nombre AS especialidad
+            SELECT 
+                m.id_medico, 
+                COALESCE(
+                    CONCAT(u.nombre, ' ', u.apellido), 
+                    CONCAT(m.nombre, ' ', m.apellido)
+                ) AS nombre_completo, 
+                e.nombre AS especialidad
             FROM medico m
-            INNER JOIN usuario u ON m.id_usuario = u.id_usuario
+            LEFT JOIN usuario u ON m.id_usuario = u.id_usuario
             LEFT JOIN especialidad e ON m.id_especialidad = e.id_especialidad
-            WHERE u.activo = 1 AND m.tipo = 'especialista'
-            ORDER BY u.nombre ASC
+            WHERE (u.activo = 1 OR m.id_usuario IS NULL) 
+              AND m.tipo = 'especialista'
+            ORDER BY nombre_completo ASC
         `);
         return filas;
     }

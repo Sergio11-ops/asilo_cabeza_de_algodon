@@ -6,6 +6,10 @@ class PacienteService {
         return await pacienteRepository.obtenerTodos();
     }
 
+    async obtenerCatalogos() {
+        return await pacienteRepository.obtenerCatalogos();
+    }
+
     async obtenerPacientePorId(id) {
         const paciente = await pacienteRepository.obtenerPorId(id);
         if (!paciente) {
@@ -17,7 +21,7 @@ class PacienteService {
     }
 
     async registrarPaciente(payload) {
-        const { paciente, familiar } = payload;
+        const { paciente, familiar, ficha_medica } = payload;
 
         if (!paciente || !paciente.dpi || !paciente.nombres || !paciente.apellidos || !paciente.fecha_nacimiento || !paciente.fecha_ingreso) {
             const error = new Error('Los campos DPI, nombres, apellidos, fecha de nacimiento y fecha de ingreso son obligatorios.');
@@ -39,7 +43,7 @@ class PacienteService {
             throw error;
         }
 
-        // Verificar que no exista un paciente activo con el mismo DPI
+        // Verificar que no exista un paciente con el mismo DPI
         const existeDpi = await pacienteRepository.obtenerPorDpi(paciente.dpi);
         if (existeDpi) {
             const error = new Error(`Ya existe un paciente registrado con el DPI ${paciente.dpi}.`);
@@ -47,7 +51,7 @@ class PacienteService {
             throw error;
         }
 
-        const resultado = await pacienteRepository.crearPacienteConRelaciones(paciente, familiar);
+        const resultado = await pacienteRepository.crearPacienteConRelaciones(paciente, familiar, ficha_medica);
         return {
             id_paciente: resultado.id_paciente,
             expediente: resultado.expediente,
@@ -55,22 +59,34 @@ class PacienteService {
         };
     }
 
-   async actualizarPaciente(id, payload) {
-    const { paciente, familiar } = payload;
-    await this.obtenerPacientePorId(id);
+    async actualizarPaciente(id, payload) {
+        const { paciente, familiar, ficha_medica } = payload;
+        await this.obtenerPacientePorId(id);
 
-    if (!paciente || !paciente.nombres || !paciente.apellidos) {
-        const error = new Error('Los campos nombres y apellidos del paciente son obligatorios.');
-        error.status = 400;
-        throw error;
-    }
+        if (!paciente || !paciente.nombres || !paciente.apellidos) {
+            const error = new Error('Los campos nombres y apellidos del paciente son obligatorios.');
+            error.status = 400;
+            throw error;
+        }
 
-    const actualizado = await pacienteRepository.actualizarPacienteYFamiliar(id, paciente, familiar);
-    if (!actualizado) {
-        throw new Error('No se pudo actualizar la información del paciente.');
+        // La ficha médica es opcional: si no viene en el payload, no se toca.
+        if (ficha_medica !== undefined && ficha_medica !== null) {
+            const { psicopatologias, medicamentos_cajon } = ficha_medica;
+            const psicoInvalida = psicopatologias !== undefined && !Array.isArray(psicopatologias);
+            const medsInvalidos = medicamentos_cajon !== undefined && !Array.isArray(medicamentos_cajon);
+            if (psicoInvalida || medsInvalidos) {
+                const error = new Error('La ficha médica tiene un formato no válido.');
+                error.status = 400;
+                throw error;
+            }
+        }
+
+        const actualizado = await pacienteRepository.actualizarPacienteYFamiliar(id, paciente, familiar, ficha_medica);
+        if (!actualizado) {
+            throw new Error('No se pudo actualizar la información del paciente.');
+        }
+        return { mensaje: 'Ficha del paciente y familiar actualizados correctamente.' };
     }
-    return { mensaje: 'Ficha del paciente y familiar actualizados correctamente.' };
-}
 
     async desactivarPaciente(id) {
         await this.obtenerPacientePorId(id);
