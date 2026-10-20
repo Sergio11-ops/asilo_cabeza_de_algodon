@@ -11,17 +11,21 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="css/styles.css">
 </head>
-<body data-pagina-roles="admin,medico_general,especialista,enfermero">
+<body data-pagina-roles="admin,medico_general,enfermero">
   <div class="app-shell">
 
     <!-- Navegación Lateral -->
+ <!-- Rail de íconos -->
     <aside class="icon-rail">
-      <div class="rail-logo"><img src="imagenes/logo.png" alt="Logo Cabeza de Algodón"></div>
+      <div class="rail-logo">
+        <img src="imagenes/logo.png" alt="Logo Cabeza de Algodón">
+      </div>
       <nav class="rail-nav">
-        <a class="rail-link" href="dashboard.html" title="Inicio" data-roles="admin,medico_general,especialista,enfermero,laboratorio,farmacia,caja"><i class="bi bi-house-door-fill"></i></a>
-        <a class="rail-link active" href="registro_paciente.html" title="Gestión Pacientes" data-roles="admin,medico_general,especialista,enfermero"><i class="bi bi-person-plus"></i></a>
-        <a class="rail-link" href="solicitud_medica.html" title="Solicitudes Médicas" data-roles="admin,medico_general,especialista"><i class="bi bi-file-earmark-medical"></i></a>
-        <a class="rail-link" href="agenda_fundacion.html" title="Agenda Fundación" data-roles="admin,medico_general,especialista,enfermero"><i class="bi bi-calendar-check"></i></a>
+        <a class="rail-link" href="dashboard.html" title="Inicio" data-roles="admin,medico_general,especialista,enfermero,laboratorio,farmacia,caja,fundacion"><i class="bi bi-house-door-fill"></i></a>
+        <a class="rail-link" href="registro_paciente.html" title="Gestión Pacientes" data-roles="admin,medico_general,especialista,enfermero"><i class="bi bi-person-plus"></i></a>
+        <a class="rail-link" href="solicitud_medica.html" title="Solicitudes Médicas" data-roles="admin,medico_general,especialista,enfermero"><i class="bi bi-file-earmark-medical"></i></a>
+        <a class="rail-link" href="agenda_fundacion.html" title="Agenda Fundación" data-roles="admin,fundacion"><i class="bi bi-calendar-check"></i></a>
+        <a class="rail-link" href="visita_medica.html" title="Visitas y Especialidades" data-roles="admin,medico_general,especialista"><i class="bi bi-heart-pulse"></i></a>
         <a class="rail-link" href="laboratorio.html" title="Laboratorio" data-roles="admin,medico_general,especialista,laboratorio"><i class="bi bi-clipboard2-pulse"></i></a>
         <a class="rail-link" href="farmacia.html" title="Farmacia" data-roles="admin,medico_general,especialista,farmacia"><i class="bi bi-capsule"></i></a>
         <a class="rail-link" href="caja_donaciones.html" title="Caja y Donaciones" data-roles="admin,caja"><i class="bi bi-cash-coin"></i></a>
@@ -40,7 +44,11 @@
           <p class="eyebrow-greeting">Fundación Cabeza de Algodón</p>
           <h1>Gestión de Pacientes</h1>
         </div>
+        <div class="header-actions">
+        <a href="#seccionRegistro" class="icon-btn filled" title="Registrar nuevo paciente" data-roles="admin"><i class="bi bi-plus-lg"></i></a>        </div>
       </header>
+
+      
 
       <!-- Estadísticas -->
       <section class="stat-row">
@@ -102,10 +110,12 @@
       <!-- Formulario de Registro de Paciente -->
       <section class="panel-card">
         <div class="form-section-title">
+          <section class="panel-card" id="seccionRegistro"></section>
           <span class="icon-circle"><i class="bi bi-person-plus"></i></span>
           Registrar Nuevo Paciente
         </div>
         <form id="formRegistroPaciente">
+          <!-- Datos Personales -->
           <div class="row g-3">
             <div class="col-md-4">
               <label class="form-label">DPI / CUI (13 dígitos) *</label>
@@ -198,6 +208,62 @@
             </div>
           </div>
 
+          <hr class="form-section-divider my-4">
+
+          <!-- Sección Ficha Médica Inicial: Psicopatologías y Diagnósticos Base -->
+          <div class="form-section-title" style="font-size: 0.95rem;">
+            <span class="icon-circle" style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="bi bi-activity"></i></span>
+            Ficha Médica Inicial — Diagnósticos y Psicopatologías Base
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Seleccione las condiciones/psicopatologías diagnosticadas del residente:</label>
+              <div id="contenedorPsicopatologias" class="row g-2 p-3 border rounded bg-light">
+                <div class="col-12 text-muted small"><i class="bi bi-hourglass-split me-1"></i>Cargando catálogo de psicopatologías...</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Observaciones Médicas de Ingreso / Antecedentes</label>
+              <textarea class="form-control" id="observacionesMedicasIngreso" rows="2" placeholder="Notas sobre alergias, dietas especiales, estado cognitivo o antecedente de cirugías..."></textarea>
+            </div>
+          </div>
+
+          <hr class="form-section-divider my-4">
+
+          <!-- Sección Medicamentos Habituales (De Cajón) -->
+          <div class="form-section-title d-flex justify-content-between align-items-center" style="font-size: 0.95rem;">
+            <div>
+              <span class="icon-circle" style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="bi bi-capsule"></i></span>
+              Medicamentos Habituales / De Cajón
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" id="btnAgregarMedicamentoCajon">
+              <i class="bi bi-plus-circle me-1"></i> Agregar Medicamento
+            </button>
+          </div>
+
+          <div class="table-responsive mt-2">
+            <table class="table table-bordered table-sm align-middle" id="tablaMedicamentosCajon">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 35%;">Medicamento *</th>
+                  <th style="width: 20%;">Dosis *</th>
+                  <th style="width: 20%;">Frecuencia *</th>
+                  <th style="width: 15%;">Vía</th>
+                  <th style="width: 10%;" class="text-center">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="bodyMedicamentosCajon">
+                <tr class="row-vacia-meds">
+                  <td colspan="5" class="text-center text-muted py-3 small">
+                    No se han agregado medicamentos de cajón. Presione "Agregar Medicamento" si el residente consume fármacos fijos.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Alertas -->
           <div id="errorAlertPaciente" class="alert alert-danger mt-3" style="display: none;" role="alert">
             <i class="bi bi-exclamation-triangle-fill me-2"></i>
             <span id="errorMessagePaciente"></span>
@@ -216,11 +282,12 @@
       </section>
 
       <!-- Modal Editar Paciente y Familiar -->
+      <!-- Modal Editar Paciente, Familiar y Ficha Médica -->
       <div class="modal fade" id="modalEditarPaciente" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Editar Datos de Paciente y Familiar</h5>
+              <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Editar Datos de Paciente, Familiar y Ficha Médica</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="formEditarPaciente">
@@ -228,6 +295,7 @@
                 <input type="hidden" id="edit_id_paciente">
                 <input type="hidden" id="edit_id_familiar">
 
+                <!-- DATOS DEL PACIENTE -->
                 <h6 class="fw-bold border-bottom pb-2 mb-3 text-primary">Datos del Paciente</h6>
                 <div class="row g-3">
                   <div class="col-md-6">
@@ -270,6 +338,7 @@
                   </div>
                 </div>
 
+                <!-- FAMILIAR RESPONSABLE -->
                 <h6 class="fw-bold border-bottom pb-2 mt-4 mb-3 text-primary">Familiar Responsable</h6>
                 <div class="row g-3">
                   <div class="col-md-4">
@@ -305,6 +374,53 @@
                     <input type="text" class="form-control" id="edit_direccionFamiliar">
                   </div>
                 </div>
+
+                <!-- FICHA MÉDICA: PSICOPATOLOGÍAS Y MEDICAMENTOS DE CAJÓN -->
+                <h6 class="fw-bold border-bottom pb-2 mt-4 mb-3 text-primary">Ficha Médica</h6>
+                
+                <!-- Sección Psicopatologías -->
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Condiciones / Psicopatologías</label>
+                  <div id="edit_contenedorPsicopatologias" class="row g-2 p-2 border rounded bg-light">
+                    <!-- Se llena dinámicamente desde JS -->
+                  </div>
+                </div>
+
+                <div class="mb-3">
+  <label class="form-label fw-semibold">Observaciones médicas / antecedentes</label>
+  <textarea class="form-control" id="edit_observacionesMedicas" rows="2"></textarea>
+</div>
+
+                <!-- Sección Medicamentos de Cajón -->
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-semibold mb-0">Medicamentos de Cajón / Habituales</label>
+                    <button type="button" id="btnAgregarMedCajonEdit" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-plus-circle me-1"></i>Agregar Medicamento
+                    </button>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle mb-0">
+                      <thead class="table-light">
+                        <tr>
+                          <th>Medicamento</th>
+                          <th>Dosis</th>
+                          <th>Frecuencia</th>
+                          <th>Vía</th>
+                          <th class="text-center" style="width: 50px;">Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody id="edit_bodyMedicamentosCajon">
+                        <tr class="row-vacia-meds">
+                          <td colspan="5" class="text-center text-muted py-3 small">
+                            Sin medicamentos de cajón cargados.
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -314,6 +430,7 @@
           </div>
         </div>
       </div>
+      
 
     </main>
   </div>

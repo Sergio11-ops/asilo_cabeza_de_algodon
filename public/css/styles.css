@@ -565,6 +565,7 @@ h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--ink); }
 .role-laboratorio { background-color: #dcf3f2; color: #1f7d7a; }
 .role-caja { background-color: var(--rose-tint); color: #a13c30; }
 .role-farmacia { background-color: #e4eefb; color: #295a91; }
+.role-fundacion { background-color: var(--rose-tint); color: #a13c30; }
 
 /* Alerta de stock bajo */
 .low-stock-row { background-color: var(--rose-tint); }

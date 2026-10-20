@@ -10,7 +10,8 @@ const pacienteRoutes = require('./routes/paciente.routes');
 const solicitudRoutes = require('./routes/solicitud.routes');
 const citaRoutes = require('./routes/cita.routes');
 const laboratorioRoutes = require('./routes/laboratorio.routes');
-
+const farmaciaRoutes = require('./routes/farmacia.routes');
+const visitaMedicaRoutes = require('./routes/visita_medica.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,9 +24,11 @@ app.use(express.urlencoded({ extended: true }));
 // Servir archivos estáticos del frontend (public)
 app.use(express.static(path.join(__dirname, '../public')));
 
-
 console.log('authRoutes:', typeof authRoutes);
 console.log('usuariosRoutes:', typeof usuariosRoutes); 
+console.log('farmaciaRoutes:', typeof farmaciaRoutes);
+console.log('visitaMedicaRoutes:', typeof visitaMedicaRoutes);
+
 // Enrutamiento modular
 app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuariosRoutes);
@@ -33,6 +36,8 @@ app.use('/api/pacientes', pacienteRoutes);
 app.use('/api/solicitudes', solicitudRoutes);
 app.use('/api/citas', citaRoutes);
 app.use('/api/laboratorio', laboratorioRoutes);
+app.use('/api/farmacia', farmaciaRoutes);
+app.use('/api/visita-medica', visitaMedicaRoutes);
 
 // Servidor escuchando
 app.listen(PORT, () => {

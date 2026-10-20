@@ -8,7 +8,14 @@ router.use(verificarToken);
 
 router.get('/combos', laboratorioController.obtenerCombos);
 router.get('/solicitudes', laboratorioController.listarSolicitudes);
-router.post('/ordenes', laboratorioController.crearOrden);
+
+// Crear órdenes: administradores, médicos y la fundación (médico visitante).
+// El personal de laboratorio las atiende pero no las crea.
+router.post(
+    '/ordenes',
+    permitirRoles('admin', 'medico_general', 'especialista', 'fundacion'),
+    laboratorioController.crearOrden
+);
 
 // Proteger la carga de resultados: Solo administradores y personal de laboratorio
 router.put(

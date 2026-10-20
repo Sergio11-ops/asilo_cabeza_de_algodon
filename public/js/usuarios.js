@@ -269,7 +269,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'enfermero': 'Enfermero/a',
       'laboratorio': 'Laboratorio',
       'farmacia': 'Farmacia',
-      'caja': 'Caja'
+      'caja': 'Caja',
+      'fundacion': 'Fundación'
     };
     return rolesMap[rol] || rol;
   }

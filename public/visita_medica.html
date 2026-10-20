@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visita Médica - Cabeza de Algodón</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-pagina-roles="admin,especialista,medico_general">
+  <div class="app-shell">
+
+    <!-- Rail de Navegación -->
+    <aside class="icon-rail">
+      <div class="rail-logo"><img src="imagenes/logo.png" alt="Logo"></div>
+      <nav class="rail-nav">
+        <a class="rail-link" href="dashboard.html" title="Inicio" data-roles="admin,medico_general,especialista,enfermero,laboratorio,farmacia,caja,fundacion"><i class="bi bi-house-door-fill"></i></a>
+        <a class="rail-link" href="registro_paciente.html" title="Gestión Pacientes" data-roles="admin,medico_general,enfermero"><i class="bi bi-person-plus"></i></a>    
+        <a class="rail-link" href="solicitud_medica.html" title="Solicitudes Médicas" data-roles="admin,medico_general"><i class="bi bi-file-earmark-medical"></i></a>
+        <a class="rail-link" href="agenda_fundacion.html" title="Agenda Fundación" data-roles="admin,enfermero"><i class="bi bi-calendar-check"></i></a>
+        <a class="rail-link" href="visita_medica.html" title="Visitas y Especialidades" data-roles="admin,especialista,medico_general"><i class="bi bi-heart-pulse"></i></a>       
+        <a class="rail-link" href="laboratorio.html" title="Laboratorio" data-roles="admin,medico_general,especialista,laboratorio"><i class="bi bi-clipboard2-pulse"></i></a>
+        <a class="rail-link" href="farmacia.html" title="Farmacia" data-roles="admin,medico_general,especialista,farmacia"><i class="bi bi-capsule"></i></a>
+        <a class="rail-link" href="caja_donaciones.html" title="Caja y Donaciones" data-roles="admin,caja"><i class="bi bi-cash-coin"></i></a>
+        <a class="rail-link" href="reportes.html" title="Reportes" data-roles="admin"><i class="bi bi-bar-chart-line"></i></a>
+        <a class="rail-link" href="usuarios.html" title="Gestión de Usuarios" data-roles="admin"><i class="bi bi-people"></i></a>
+      </nav>
+      <div class="rail-bottom">
+        <button id="btnCerrarSesion" class="rail-logout" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i></button>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="main-header">
+        <div>
+          <p class="eyebrow-greeting">Fundación Cabeza de Algodón</p>
+          <h1>Consulta por Especialidad</h1>
+        </div>
+      </header>
+
+      <!-- Pestañas dinámicas de Especialidades -->
+      <div class="mb-3 d-flex gap-2 flex-wrap" id="contenedorPestañasEspecialidad">
+        <button class="btn btn-sm tab-btn active" data-especialidad="todas"><i class="bi bi-grid-fill me-1"></i> Todas</button>
+      </div>
+
+      <section class="panel-card">
+        <div class="panel-card-header">
+          <h3>Citas Programadas</h3>
+          <div class="search-bar">
+            <i class="bi bi-search"></i>
+            <input type="text" id="txtBuscarCita" class="form-control" placeholder="Buscar por paciente o médico...">
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-custom">
+            <thead>
+              <tr>
+                <th>Paciente</th>
+                <th>Especialidad</th>
+                <th>Fecha y Hora</th>
+                <th>Motivo Consulta</th>
+                <th>Médico Asignado</th>
+                <th>Enfermero Acompañante</th>
+                <th>Estado</th>
+                <th class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaVisitasBody">
+              <tr><td colspan="8" class="text-center text-muted py-4">Cargando citas programadas...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal 1: Ver Ficha Clínica Completa -->
+  <div class="modal fade" id="modalFichaMedica" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title fw-bold"><i class="bi bi-journal-medical me-2"></i>Ficha Clínica del Paciente</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="p-3 bg-light rounded mb-3">
+            <div class="row g-2">
+              <div class="col-md-4"><strong>Paciente:</strong> <span id="lblFichaPaciente">-</span></div>
+              <div class="col-md-4"><strong>Expediente:</strong> <span id="lblFichaExpediente">-</span></div>
+              <div class="col-md-4"><strong>Grupo Sanguíneo:</strong> <span id="lblFichaSangre">-</span></div>
+            </div>
+          </div>
+
+          <ul class="nav nav-tabs mb-3" id="tabFichaPaciente" role="tablist">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabMeds"><i class="bi bi-capsule me-1"></i> Medicamentos</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPsico"><i class="bi bi-clipboard2-heart me-1"></i> Psicopatologías</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabLab"><i class="bi bi-file-earmark-medical me-1"></i> Resultados de Laboratorio</button></li>
+          </ul>
+
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="tabMeds">
+              <div id="contenedorFichaMeds" class="list-group list-group-flush"></div>
+            </div>
+            <div class="tab-pane fade" id="tabPsico">
+              <div id="contenedorFichaPsico" class="list-group list-group-flush"></div>
+            </div>
+            <div class="tab-pane fade" id="tabLab">
+              <div id="contenedorFichaLab" class="table-responsive"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Registrar Diagnóstico -->
+  <div class="modal fade" id="modalDiagnostico" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title fw-bold"><i class="bi bi-clipboard2-check me-2"></i>Registrar Diagnóstico Médico</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="formDiagnostico">
+          <input type="hidden" id="txtDiagSolicitud">
+          <input type="hidden" id="txtDiagPaciente">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Diagnóstico Clínico *</label>
+              <textarea id="txtDiagnosticoClinico" class="form-control" rows="4" placeholder="Escriba el diagnóstico detallado del especialista..." required></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Observaciones / Indicaciones Médicas</label>
+              <textarea id="txtObservacionesClinicas" class="form-control" rows="3" placeholder="Recomendaciones o seguimiento..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Guardar Diagnóstico</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS EN ORDEN CORRECTO -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> 
+   <script src="js/auth.js"></script>
+  <script src="js/visita_medica.js"></script>
+</body>
+</html>

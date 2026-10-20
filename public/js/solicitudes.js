@@ -287,42 +287,190 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    // Listener para crear especialidad rápida
-const btnNuevaEsp = document.getElementById('btnNuevaEspecialidad');
-if (btnNuevaEsp) {
-    btnNuevaEsp.addEventListener('click', async () => {
-        const nombreEsp = prompt('Ingrese el nombre de la nueva especialidad (Ej: Dermatología, Neurología):');
-        if (!nombreEsp || !nombreEsp.trim()) return;
+    // =====================================================
+    //  Nueva especialidad: cuadro elegante dentro del modal de la solicitud
+    // =====================================================
+    const btnNuevaEsp = document.getElementById('btnNuevaEspecialidad');
+    let cuadroEsp = null; // se construye la primera vez que se abre
 
-        try {
-            const token = localStorage.getItem('authToken');
-            const res = await fetch('/api/solicitudes/especialidades', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ nombre: nombreEsp.trim() })
-            });
+    if (btnNuevaEsp) btnNuevaEsp.addEventListener('click', abrirCuadroEspecialidad);
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.mensaje);
+    // Si se cierra el modal de la solicitud, el cuadro también se cierra
+    if (modalNuevaEl) {
+        modalNuevaEl.addEventListener('hidden.bs.modal', () => cerrarCuadroEspecialidad(true));
+    }
 
-            alert('¡Especialidad agregada con éxito!');
+    /**
+     * Guarda la especialidad (POST /api/solicitudes/especialidades) y la deja seleccionada.
+     * Es la misma inserción de siempre; además conserva el paciente y el enfermero ya elegidos.
+     */
+    async function crearEspecialidad(nombre) {
+        const res = await fetch('/api/solicitudes/especialidades', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ nombre })
+        });
 
-            // Recargar el combo y seleccionar la especialidad recién creada
-            if (typeof cargarCombos === 'function') {
-                await cargarCombos();
-            }
-            
-            const selectEsp = document.getElementById('selectEspecialidad');
-            if (selectEsp && data.datos.id_especialidad) {
-                selectEsp.value = data.datos.id_especialidad;
-            }
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.mensaje);
 
-        } catch (err) {
-            alert('Error: ' + err.message);
+        const selectPac = document.getElementById('selectPaciente');
+        const selectEnf = document.getElementById('selectEnfermero');
+        const selectEsp = document.getElementById('selectEspecialidad');
+        const valorPaciente = selectPac ? selectPac.value : '';
+        const valorEnfermero = selectEnf ? selectEnf.value : '';
+
+        // Recargar los combos y seleccionar la especialidad recién creada
+        await cargarCombos();
+
+        if (selectPac) selectPac.value = valorPaciente;
+        if (selectEnf) selectEnf.value = valorEnfermero;
+
+        if (selectEsp && data.datos && data.datos.id_especialidad) {
+            selectEsp.value = data.datos.id_especialidad;
+            selectEsp.classList.add('is-valid'); // resalta unos segundos que quedó seleccionada
+            setTimeout(() => selectEsp.classList.remove('is-valid'), 2500);
         }
-    });
-}
+    }
+
+    function abrirCuadroEspecialidad() {
+        const contenedor = modalNuevaEl ? modalNuevaEl.querySelector('.modal-content') : null;
+
+        // Respaldo: si no se encuentra el modal, se usa el cuadro simple del navegador
+        if (!contenedor) {
+            const nombre = prompt('Ingrese el nombre de la nueva especialidad (Ej: Dermatología, Neurología):');
+            if (nombre && nombre.trim()) {
+                crearEspecialidad(nombre.trim()).catch(err => alert('Error: ' + err.message));
+            }
+            return;
+        }
+
+        if (!cuadroEsp) cuadroEsp = construirCuadroEspecialidad(contenedor);
+
+        const input = cuadroEsp.querySelector('#inputNuevaEspecialidad');
+        input.value = '';
+        input.classList.remove('is-invalid');
+
+        cuadroEsp.classList.remove('d-none');
+        requestAnimationFrame(() => {
+            cuadroEsp.classList.add('show');
+            input.focus();
+        });
+    }
+
+    function cerrarCuadroEspecialidad(inmediato = false) {
+        if (!cuadroEsp) return;
+        cuadroEsp.classList.remove('show');
+        if (inmediato) {
+            cuadroEsp.classList.add('d-none');
+            return;
+        }
+        setTimeout(() => {
+            if (!cuadroEsp.classList.contains('show')) cuadroEsp.classList.add('d-none');
+        }, 160);
+        if (btnNuevaEsp) btnNuevaEsp.focus();
+    }
+
+    function construirCuadroEspecialidad(contenedor) {
+        const overlay = document.createElement('div');
+        overlay.id = 'cuadroNuevaEspecialidad';
+        overlay.className = 'position-absolute top-0 start-0 w-100 h-100 d-flex d-none align-items-center justify-content-center fade';
+        overlay.style.cssText = 'z-index:1060; padding:1rem; background:rgba(15,23,42,.45); border-radius:inherit;';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-labelledby', 'tituloNuevaEspecialidad');
+
+        overlay.innerHTML = `
+            <div class="bg-white shadow-lg p-4" style="width:100%; max-width:420px; border-radius:1rem;">
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                          style="width:44px; height:44px; background:rgba(13,110,253,.12); color:#0d6efd; font-size:1.25rem;">
+                        <i class="bi bi-plus-lg"></i>
+                    </span>
+                    <div>
+                        <h5 class="mb-1 fw-semibold" id="tituloNuevaEspecialidad">Nueva especialidad</h5>
+                        <p class="text-muted small mb-0">Se agregará al catálogo y quedará seleccionada en esta solicitud.</p>
+                    </div>
+                </div>
+
+                <label for="inputNuevaEspecialidad" class="form-label small fw-semibold">
+                    Nombre de la especialidad <span class="text-danger">*</span>
+                </label>
+                <input type="text" class="form-control" id="inputNuevaEspecialidad"
+                       placeholder="Ej. Dermatología, Neurología" autocomplete="off">
+                <div class="invalid-feedback" id="feedbackNuevaEspecialidad"></div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button type="button" class="btn btn-secondary" id="btnCancelarEspecialidad">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnGuardarEspecialidad">
+                        <i class="bi bi-check-lg me-1"></i>Guardar
+                    </button>
+                </div>
+            </div>
+        `;
+
+        contenedor.appendChild(overlay);
+
+        const input = overlay.querySelector('#inputNuevaEspecialidad');
+        const feedback = overlay.querySelector('#feedbackNuevaEspecialidad');
+        const btnGuardar = overlay.querySelector('#btnGuardarEspecialidad');
+        const textoBotonGuardar = btnGuardar.innerHTML;
+
+        function mostrarError(mensaje) {
+            feedback.textContent = mensaje;
+            input.classList.add('is-invalid');
+        }
+
+        async function guardar() {
+            if (btnGuardar.disabled) return;
+
+            const nombre = input.value.trim();
+            if (!nombre) {
+                mostrarError('Ingresa el nombre de la especialidad.');
+                input.focus();
+                return;
+            }
+
+            try {
+                btnGuardar.disabled = true;
+                btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Guardando...';
+                await crearEspecialidad(nombre);
+                cerrarCuadroEspecialidad();
+            } catch (err) {
+                mostrarError(err.message || 'No se pudo guardar la especialidad.');
+                input.focus();
+            } finally {
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = textoBotonGuardar;
+            }
+        }
+
+        btnGuardar.addEventListener('click', guardar);
+        overlay.querySelector('#btnCancelarEspecialidad').addEventListener('click', () => cerrarCuadroEspecialidad());
+        input.addEventListener('input', () => input.classList.remove('is-invalid'));
+
+        // Enter guarda (sin enviar la solicitud) y Esc cierra solo este cuadro (no el modal de atrás)
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                guardar();
+            }
+        });
+        overlay.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                e.stopPropagation();
+                cerrarCuadroEspecialidad();
+            }
+        });
+
+        // Clic en el fondo oscuro cierra el cuadro
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) cerrarCuadroEspecialidad();
+        });
+
+        return overlay;
+    }
 });

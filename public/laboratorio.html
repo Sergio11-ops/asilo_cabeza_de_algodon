@@ -15,13 +15,16 @@
   <div class="app-shell">
 
     <aside class="icon-rail">
-      <div class="rail-logo"><img src="imagenes/logo.png" alt="Logo Cabeza de Algodón"></div>
+      <div class="rail-logo">
+        <img src="imagenes/logo.png" alt="Logo Cabeza de Algodón">
+      </div>
       <nav class="rail-nav">
-        <a class="rail-link" href="dashboard.html" title="Inicio" data-roles="admin,medico_general,especialista,enfermero,laboratorio,farmacia,caja"><i class="bi bi-house-door-fill"></i></a>
-        <a class="rail-link" href="registro_paciente.html" title="Gestión Pacientes" data-roles="admin,enfermero"><i class="bi bi-person-plus"></i></a>
-        <a class="rail-link" href="solicitud_medica.html" title="Solicitudes Médicas" data-roles="admin,medico_general,especialista"><i class="bi bi-file-earmark-medical"></i></a>
-        <a class="rail-link" href="agenda_fundacion.html" title="Agenda Fundación" data-roles="admin,medico_general,especialista,enfermero"><i class="bi bi-calendar-check"></i></a>
-        <a class="rail-link active" href="laboratorio.html" title="Laboratorio" data-roles="admin,medico_general,especialista,laboratorio"><i class="bi bi-clipboard2-pulse"></i></a>
+        <a class="rail-link" href="dashboard.html" title="Inicio" data-roles="admin,medico_general,especialista,enfermero,laboratorio,farmacia,caja,fundacion"><i class="bi bi-house-door-fill"></i></a>
+        <a class="rail-link" href="registro_paciente.html" title="Gestión Pacientes" data-roles="admin,medico_general,enfermero"><i class="bi bi-person-plus"></i></a>
+        <a class="rail-link" href="solicitud_medica.html" title="Solicitudes Médicas" data-roles="admin,medico_general"><i class="bi bi-file-earmark-medical"></i></a>
+        <a class="rail-link" href="agenda_fundacion.html" title="Agenda Fundación" data-roles="admin,fundacion"><i class="bi bi-calendar-check"></i></a>
+        <a class="rail-link" href="visita_medica.html" title="Visitas y Especialidades" data-roles="admin,medico_general,especialista"><i class="bi bi-heart-pulse"></i></a>
+        <a class="rail-link" href="laboratorio.html" title="Laboratorio" data-roles="admin,medico_general,especialista,laboratorio"><i class="bi bi-clipboard2-pulse"></i></a>
         <a class="rail-link" href="farmacia.html" title="Farmacia" data-roles="admin,medico_general,especialista,farmacia"><i class="bi bi-capsule"></i></a>
         <a class="rail-link" href="caja_donaciones.html" title="Caja y Donaciones" data-roles="admin,caja"><i class="bi bi-cash-coin"></i></a>
         <a class="rail-link" href="reportes.html" title="Reportes" data-roles="admin"><i class="bi bi-bar-chart-line"></i></a>
@@ -36,81 +39,56 @@
       <header class="main-header">
         <div>
           <p class="eyebrow-greeting">Fundación Cabeza de Algodón</p>
-          <h1>Laboratorio</h1>
+          <h1>Laboratorio Clínico</h1>
         </div>
         <div class="header-actions">
-          <button class="icon-btn dashed" title="Nueva orden"><i class="bi bi-plus-lg"></i></button>
+          <button id="btnNuevaOrden" class="btn btn-primary rounded-pill px-3" data-roles="admin,medico_general,especialista">
+            <i class="bi bi-plus-lg me-1"></i> Nueva Orden de Examen
+          </button>
         </div>
       </header>
 
       <section class="stat-row">
         <div class="stat-pill tone-gold">
           <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
-          <div><p class="stat-label">Pendientes</p><p class="stat-value">6</p></div>
+          <div><p class="stat-label">Pendientes</p><p id="cntPendientes" class="stat-value">0</p></div>
         </div>
         <div class="stat-pill tone-brand">
           <div class="stat-icon"><i class="bi bi-arrow-repeat"></i></div>
-          <div><p class="stat-label">En proceso</p><p class="stat-value">3</p></div>
+          <div><p class="stat-label">En proceso</p><p id="cntProceso" class="stat-value">0</p></div>
         </div>
         <div class="stat-pill tone-sage">
           <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
-          <div><p class="stat-label">Completados hoy</p><p class="stat-value">11</p></div>
+          <div><p class="stat-label">Completados hoy</p><p id="cntCompletados" class="stat-value">0</p></div>
         </div>
       </section>
 
       <section class="panel-card">
         <div class="panel-card-header">
-          <div class="filter-tabs">
-            <button class="tab-btn active">Todas</button>
-            <button class="tab-btn">Pendientes</button>
-            <button class="tab-btn">En proceso</button>
-            <button class="tab-btn">Completadas</button>
+          <div class="filter-tabs" id="filtroEstados">
+            <button class="tab-btn active" data-estado="todos">Todas</button>
+            <button class="tab-btn" data-estado="solicitado">Pendientes</button>
+            <button class="tab-btn" data-estado="en_proceso">En proceso</button>
+            <button class="tab-btn" data-estado="completado">Completadas</button>
+            <button class="tab-btn" data-estado="no_realizado">No Realizados</button>
           </div>
         </div>
         <div class="table-responsive">
-          <table class="table table-custom">
+          <table class="table table-custom align-middle">
             <thead>
               <tr>
                 <th>Paciente</th>
-                <th>Examen solicitado</th>
-                <th>Solicitado por</th>
+                <th>Examen Solicitado</th>
+                <th>Solicitado Por</th>
                 <th>Fecha</th>
+                <th>Precio Est.</th>
                 <th>Estado</th>
                 <th class="text-end">Acción</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="tablaLaboratorioBody">
               <tr>
-                <td><div class="d-flex align-items-center gap-2"><div class="avatar-patient">MR</div><div class="fw-semibold">Marta Reyes</div></div></td>
-                <td>Glucosa en ayunas</td>
-                <td>Dra. Ixchel Pop</td>
-                <td>21/09/2026</td>
-                <td><span class="badge-status-pendiente">Pendiente</span></td>
-                <td class="text-end"><button class="btn-icon-action neutral" title="Cargar resultado"><i class="bi bi-upload"></i></button></td>
-              </tr>
-              <tr>
-                <td><div class="d-flex align-items-center gap-2"><div class="avatar-patient">HB</div><div class="fw-semibold">Hugo Barrios</div></div></td>
-                <td>Hemograma completo</td>
-                <td>Dr. Estuardo Say</td>
-                <td>20/09/2026</td>
-                <td><span class="badge-status-proceso">En proceso</span></td>
-                <td class="text-end"><button class="btn-icon-action neutral" title="Cargar resultado"><i class="bi bi-upload"></i></button></td>
-              </tr>
-              <tr>
-                <td><div class="d-flex align-items-center gap-2"><div class="avatar-patient">DR</div><div class="fw-semibold">Dora Ramírez</div></div></td>
-                <td>Perfil renal</td>
-                <td>Dra. Ixchel Pop</td>
-                <td>19/09/2026</td>
-                <td><span class="badge-status-completado">Completado</span></td>
-                <td class="text-end"><button class="btn-icon-action neutral" title="Ver resultado"><i class="bi bi-file-earmark-pdf"></i></button></td>
-              </tr>
-              <tr>
-                <td><div class="d-flex align-items-center gap-2"><div class="avatar-patient">GS</div><div class="fw-semibold">Glenda Solís</div></div></td>
-                <td>Perfil lipídico</td>
-                <td>Dr. Estuardo Say</td>
-                <td>18/09/2026</td>
-                <td><span class="badge-status-completado">Completado</span></td>
-                <td class="text-end"><button class="btn-icon-action neutral" title="Ver resultado"><i class="bi bi-file-earmark-pdf"></i></button></td>
+                <td colspan="7" class="text-center text-muted py-4">Cargando solicitudes...</td>
               </tr>
             </tbody>
           </table>
@@ -119,6 +97,162 @@
     </main>
   </div>
 
+  <!-- Modal Nueva Orden con Cuadrícula y Observaciones -->
+  <div class="modal fade" id="modalNuevaOrden" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-plus me-2"></i>Nueva Orden de Laboratorio</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="formNuevaOrden">
+          <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+            
+            <!-- Selector de Paciente -->
+            <div class="mb-3">
+              <label for="selectPacienteOrden" class="form-label fw-semibold">Paciente *</label>
+              <select id="selectPacienteOrden" class="form-select" required>
+                <option value="" disabled selected>Cargando pacientes activos...</option>
+              </select>
+            </div>
+
+            <!-- Buscador Rápido -->
+            <div class="input-group input-group-sm mb-3">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input type="text" id="txtBuscarExamen" class="form-control" placeholder="Buscar examen por nombre...">
+            </div>
+
+            <!-- Sección 1: Exámenes Más Comunes (Frecuentes) -->
+            <div class="card mb-3 border-0 bg-light">
+              <div class="card-header bg-transparent border-0 pb-0 fw-bold text-primary">
+                <i class="bi bi-star-fill me-1"></i> Exámenes Frecuentes / Rutina
+              </div>
+              <div class="card-body">
+                <div id="gridExamenesFrecuentes" class="row row-cols-1 row-cols-md-3 g-2">
+                  <!-- Checkboxes generados dinámicamente -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección 2: Exámenes Especializados (Otros) -->
+            <div class="card mb-3 border-0 bg-light">
+              <div class="card-header bg-transparent border-0 pb-0 fw-bold text-secondary d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-journal-medical me-1"></i> Exámenes Especializados / Otros</span>
+                <button class="btn btn-sm btn-link text-decoration-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEspecializados">
+                  Ver / Ocultar
+                </button>
+              </div>
+              <div class="collapse show" id="collapseEspecializados">
+                <div class="card-body">
+                  <div id="gridExamenesEspeciales" class="row row-cols-1 row-cols-md-3 g-2">
+                    <!-- Checkboxes generados dinámicamente -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección 3: Observaciones o Exámenes Adicionales -->
+            <div class="mb-2">
+              <label for="txtObservacionesOrden" class="form-label fw-semibold">Observaciones / Indicaciones especiales u otros exámenes</label>
+              <textarea id="txtObservacionesOrden" class="form-control" rows="2" placeholder="Escriba aquí si requiere algún examen no listado o indicaciones de preparación..."></textarea>
+            </div>
+
+          </div>
+          <div class="modal-footer d-flex justify-content-between">
+            <span class="text-muted small" id="lblCantSeleccionados">0 exámenes seleccionados</span>
+            <div>
+              <button type="button" class="btn btn-secondary rounded-pill me-2" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary rounded-pill px-4">Enviar Orden a Laboratorio</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Cargar Resultados Orden Completa -->
+  <div class="modal fade" id="modalCargarResultado" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold"><i class="bi bi-upload me-2"></i>Registrar Resultados de Laboratorio</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="formCargarResultado">
+          <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+            
+            <div class="p-3 bg-light rounded mb-3 border d-flex justify-content-between align-items-center">
+              <div>
+                <p class="mb-0 text-muted small">Paciente:</p>
+                <h6 class="fw-bold mb-0 text-primary" id="lblPacienteModal">-</h6>
+              </div>
+              <div class="text-end">
+                <p class="mb-0 text-muted small">Médico Solicitante:</p>
+                <strong id="lblMedicoModal" class="text-dark">-</strong>
+              </div>
+            </div>
+
+            <!-- Tabla de captura de exámenes -->
+            <div class="table-responsive border rounded">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width: 25%;">Examen</th>
+                    <th style="width: 35%;">Resultado *</th>
+                    <th style="width: 25%;">Valores de Referencia / Normales</th>
+                    <th style="width: 15%;">Estatus</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaCapturaExamenesBody">
+                  <!-- Se llena dinámicamente -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="mt-3">
+              <label for="txtObservacionesOrdenLab" class="form-label fw-semibold">Observaciones Generales del Laboratorio (Opcional)</label>
+              <textarea id="txtObservacionesOrdenLab" class="form-control" rows="2" placeholder="Notas sobre muestras, interferencias o hallazgos especiales..."></textarea>
+            </div>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-success rounded-pill px-4">Guardar en Expediente</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Ver Resultado / Detalle -->
+  <div class="modal fade" id="modalVerResultado" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Detalle de Examen de Laboratorio</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="border-bottom pb-2 mb-3">
+            <p class="mb-1"><strong>Paciente:</strong> <span id="verPaciente"></span></p>
+            <p class="mb-1"><strong>Examen:</strong> <span id="verExamen"></span></p>
+            <p class="mb-1"><strong>Solicitado por:</strong> <span id="verMedico"></span></p>
+            <p class="mb-0"><strong>Estatus:</strong> <span id="verEstadoBadge"></span></p>
+          </div>
+          <div>
+            <h6 class="fw-bold">Resultado / Observaciones:</h6>
+            <div id="verContenidoResultado" class="p-3 bg-light rounded text-break"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/laboratorio.js"></script>
 </body>
 </html>

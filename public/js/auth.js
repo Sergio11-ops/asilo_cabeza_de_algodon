@@ -80,9 +80,25 @@
     }
   }
 
+  // Marcar automáticamente el ícono activo según la URL actual
+document.addEventListener('DOMContentLoaded', () => {
+    const paginaActual = window.location.pathname.split('/').pop() || 'dashboard.html';
+    
+    document.querySelectorAll('.icon-rail .rail-link').forEach(link => {
+        const href = link.getAttribute('href');
+        if (href === paginaActual) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+    });
+});
+
+
+
   window.authFundacion = {
     getToken: () => localStorage.getItem('authToken'),
     getUsuario: () => usuario,
     cerrarSesion
-  };a
+  };
 })();
