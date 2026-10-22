@@ -12,10 +12,21 @@ class VisitaMedicaService {
     }
 
     async guardarDiagnostico(datos) {
-        if (!datos.id_solicitud || !datos.diagnostico) {
-            throw { status: 400, message: 'La solicitud y el diagnóstico son obligatorios.' };
+        // Unifica la detección del ID desde id_visita, id_solicitud o id
+        const idVisita = datos.id_visita || datos.id_solicitud || datos.idVisita || datos.id;
+        const diagnostico = datos.diagnostico ? datos.diagnostico.trim() : '';
+
+        if (!idVisita || !diagnostico) {
+            throw { 
+                status: 400, 
+                message: 'El identificador de la visita/solicitud y el diagnóstico son obligatorios.' 
+            };
         }
-        return await visitaMedicaRepository.guardarDiagnostico(datos);
+
+        return await visitaMedicaRepository.guardarDiagnostico({
+            ...datos,
+            id_visita: parseInt(idVisita)
+        });
     }
 }
 

@@ -10,6 +10,14 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="css/styles.css">
+  <style>
+    @media print {
+      body * { visibility: hidden; }
+      #printableReport, #printableReport * { visibility: visible; }
+      #printableReport { position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important; }
+      .no-print { display: none !important; }
+    }
+  </style>
 </head>
 <body data-pagina-roles="admin">
   <div class="app-shell">
@@ -29,72 +37,76 @@
         <a class="rail-link" href="usuarios.html" title="Gestión de Usuarios" data-roles="admin"><i class="bi bi-people"></i></a>
       </nav>
       <div class="rail-bottom">
+        <button id="btnThemeToggle" class="rail-link mb-2" title="Cambiar Tema"><i class="bi bi-moon-stars-fill"></i></button>
         <button id="btnCerrarSesion" class="rail-logout" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i></button>
       </div>
     </aside>
 
     <main class="main-panel">
-      <header class="main-header">
+      <header class="main-header no-print">
         <div>
           <p class="eyebrow-greeting">Fundación Cabeza de Algodón</p>
-          <h1>Reportes</h1>
+          <h1>Módulo de Reportes Oficiales</h1>
         </div>
       </header>
 
-      <section class="panel-card">
-        <div class="form-section-title" style="margin-bottom: 0.5rem;">Filtrar por periodo</div>
-        <div class="row g-3">
-          <div class="col-md-3">
-            <label class="form-label">Desde</label>
-            <input type="date" class="form-control">
+      <!-- Panel de Selección de Reportes -->
+      <section class="panel-card mb-4 no-print">
+        <form id="formFiltrosReportes">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Tipo de Reporte *</label>
+              <select id="selectTipoReporte" class="form-select" required>
+                <option value="">-- Seleccione un reporte --</option>
+                <option value="costos_cita">1. Estadístico de Costos por Cita (Consultas, Exámenes y Fármacos)</option>
+                <option value="analisis_medico">2. Análisis Médico por Paciente (Ficha Clínica y Diagnósticos)</option>
+                <option value="cobros_paciente">3. Cobros por Paciente (Detalle de Gastos Médicos)</option>
+                <option value="pagos_fundacion">4. Reporte de Pagos a la Fundación</option>
+                <option value="entradas_donaciones">5. Reporte de Entradas (Donaciones y Cobros)</option>
+                <option value="examenes_realizados">6. Exámenes Médicos Realizados por Paciente</option>
+                <option value="medicamentos_aplicados">7. Medicamentos Aplicados / Entregados por Paciente</option>
+              </select>
+            </div>
+
+            <div class="col-md-4" id="colPaciente">
+              <label class="form-label fw-bold">Paciente</label>
+              <select id="selectPaciente" class="form-select">
+                <option value="">-- Todos los pacientes --</option>
+              </select>
+            </div>
+
+            <div class="col-md-2" id="colFechaInicio">
+              <label class="form-label fw-bold">Desde</label>
+              <input type="date" id="inputFechaInicio" class="form-control">
+            </div>
+
+            <div class="col-md-2" id="colFechaFin">
+              <label class="form-label fw-bold">Hasta</label>
+              <input type="date" id="inputFechaFin" class="form-control">
+            </div>
+
+            <div class="col-12 text-end mt-3">
+              <button type="submit" class="btn-solid-brand px-4 me-2"><i class="bi bi-file-earmark-bar-graph me-2"></i>Generar Reporte</button>
+              <button type="button" id="btnImprimirReporte" class="btn-outline-brand px-4" disabled><i class="bi bi-printer me-2"></i>Imprimir / Guardar PDF</button>
+            </div>
           </div>
-          <div class="col-md-3">
-            <label class="form-label">Hasta</label>
-            <input type="date" class="form-control">
-          </div>
-          <div class="col-md-3 d-flex align-items-end">
-            <button class="btn-solid-brand w-100">Generar</button>
-          </div>
-        </div>
+        </form>
       </section>
 
-      <section class="row g-3">
-        <div class="col-md-6 col-xl-3">
-          <div class="panel-card h-100">
-            <div class="stat-icon mb-3" style="background-color: var(--brand-tint); color: var(--brand);"><i class="bi bi-people"></i></div>
-            <h3 class="mb-1">Pacientes</h3>
-            <p class="text-muted small mb-3">Altas, bajas y estado general de los residentes.</p>
-            <button class="btn-outline-brand w-100"><i class="bi bi-download me-2"></i>Descargar PDF</button>
-          </div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-          <div class="panel-card h-100">
-            <div class="stat-icon mb-3" style="background-color: var(--gold-tint); color: var(--gold);"><i class="bi bi-calendar-check"></i></div>
-            <h3 class="mb-1">Citas y Agenda</h3>
-            <p class="text-muted small mb-3">Consultas atendidas, canceladas y pendientes.</p>
-            <button class="btn-outline-brand w-100"><i class="bi bi-download me-2"></i>Descargar PDF</button>
-          </div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-          <div class="panel-card h-100">
-            <div class="stat-icon mb-3" style="background-color: var(--sage-tint); color: var(--sage);"><i class="bi bi-cash-coin"></i></div>
-            <h3 class="mb-1">Financiero</h3>
-            <p class="text-muted small mb-3">Donaciones, egresos y balance de caja.</p>
-            <button class="btn-outline-brand w-100"><i class="bi bi-download me-2"></i>Descargar PDF</button>
-          </div>
-        </div>
-        <div class="col-md-6 col-xl-3">
-          <div class="panel-card h-100">
-            <div class="stat-icon mb-3" style="background-color: var(--rose-tint); color: var(--rose);"><i class="bi bi-capsule"></i></div>
-            <h3 class="mb-1">Farmacia</h3>
-            <p class="text-muted small mb-3">Consumo de medicamentos e inventario.</p>
-            <button class="btn-outline-brand w-100"><i class="bi bi-download me-2"></i>Descargar PDF</button>
+      <!-- Vista Previa / Documento Imprimible -->
+      <section class="panel-card bg-white p-4" id="printableReport">
+        <div id="reporteContenido">
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-file-earmark-text display-4 d-block mb-3"></i>
+            <p class="mb-0 fs-5">Seleccione las opciones arriba y presione <strong>Generar Reporte</strong>.</p>
           </div>
         </div>
       </section>
     </main>
   </div>
 
+  <script src="js/theme.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/reportes.js"></script>
 </body>
 </html>

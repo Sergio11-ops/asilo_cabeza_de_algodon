@@ -11,115 +11,458 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="css/styles.css">
 </head>
-<body data-pagina-roles="admin,caja">
+<body data-pagina-roles="admin,caja,administrador">
   <div class="app-shell">
 
+    <!-- Rail de Navegación Lateral -->
     <aside class="icon-rail">
-      <div class="rail-logo"><img src="imagenes/logo.png" alt="Logo Cabeza de Algodón"></div>
+      <div class="rail-logo"><img src="imagenes/logo.png" alt="Logo"></div>
       <nav class="rail-nav">
-        <a class="rail-link" href="dashboard.html" title="Inicio" data-roles="admin,medico_general,especialista,enfermero,laboratorio,farmacia,caja"><i class="bi bi-house-door-fill"></i></a>
-        <a class="rail-link" href="registro_paciente.html" title="Gestión Pacientes" data-roles="admin,enfermero"><i class="bi bi-person-plus"></i></a>
-        <a class="rail-link" href="solicitud_medica.html" title="Solicitudes Médicas" data-roles="admin,medico_general,especialista"><i class="bi bi-file-earmark-medical"></i></a>
-        <a class="rail-link" href="agenda_fundacion.html" title="Agenda Fundación" data-roles="admin,medico_general,especialista,enfermero"><i class="bi bi-calendar-check"></i></a>
+        <a class="rail-link" href="dashboard.html" title="Inicio" data-roles="admin,administrador,medico_general,especialista,enfermero,laboratorio,farmacia,caja,fundacion"><i class="bi bi-house-door-fill"></i></a>
+        <a class="rail-link" href="registro_paciente.html" title="Gestión Pacientes" data-roles="admin,administrador,medico_general,especialista,enfermero"><i class="bi bi-person-plus"></i></a>
+        <a class="rail-link" href="solicitud_medica.html" title="Solicitudes Médicas" data-roles="admin,administrador,medico_general,especialista,enfermero"><i class="bi bi-file-earmark-medical"></i></a>
+        <a class="rail-link" href="agenda_fundacion.html" title="Agenda Fundación" data-roles="admin,administrador,enfermero,fundacion"><i class="bi bi-calendar-check"></i></a>
         <a class="rail-link" href="visita_medica.html" title="Visitas y Especialidades" data-roles="admin,medico_general,especialista"><i class="bi bi-heart-pulse"></i></a>
-        <a class="rail-link" href="laboratorio.html" title="Laboratorio" data-roles="admin,medico_general,especialista,laboratorio"><i class="bi bi-clipboard2-pulse"></i></a>
-        <a class="rail-link" href="farmacia.html" title="Farmacia" data-roles="admin,medico_general,especialista,farmacia"><i class="bi bi-capsule"></i></a>
-        <a class="rail-link active" href="caja_donaciones.html" title="Caja y Donaciones" data-roles="admin,caja"><i class="bi bi-cash-coin"></i></a>
-        <a class="rail-link" href="reportes.html" title="Reportes" data-roles="admin"><i class="bi bi-bar-chart-line"></i></a>
-        <a class="rail-link" href="usuarios.html" title="Gestión de Usuarios" data-roles="admin"><i class="bi bi-people"></i></a>
+        <a class="rail-link" href="laboratorio.html" title="Laboratorio" data-roles="admin,administrador,medico_general,especialista,laboratorio"><i class="bi bi-clipboard2-pulse"></i></a>
+        <a class="rail-link" href="farmacia.html" title="Farmacia" data-roles="admin,administrador,medico_general,especialista,farmacia"><i class="bi bi-capsule"></i></a>
+        <a class="rail-link" href="caja_donaciones.html" title="Caja y Donaciones" data-roles="admin,administrador,caja"><i class="bi bi-cash-coin"></i></a>
+        <a class="rail-link" href="reportes.html" title="Reportes" data-roles="admin,administrador"><i class="bi bi-bar-chart-line"></i></a>
+        <a class="rail-link" href="usuarios.html" title="Gestión de Usuarios" data-roles="admin,administrador"><i class="bi bi-people"></i></a>
       </nav>
       <div class="rail-bottom">
         <button id="btnCerrarSesion" class="rail-logout" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i></button>
       </div>
     </aside>
 
+    <!-- Panel Principal -->
     <main class="main-panel">
       <header class="main-header">
         <div>
-          <p class="eyebrow-greeting">Fundación Cabeza de Algodón</p>
-          <h1>Caja y Donaciones</h1>
-        </div>
-        <div class="header-actions">
-          <button class="icon-btn dashed" title="Registrar egreso"><i class="bi bi-dash-lg"></i></button>
-          <button class="icon-btn filled" title="Registrar donación"><i class="bi bi-plus-lg"></i></button>
+          <p class="eyebrow-greeting">Gestión Financiera</p>
+          <h1>Caja, Donaciones y Gastos</h1>
         </div>
       </header>
 
-      <section class="stat-row cols-4">
-        <div class="stat-pill tone-gold">
-          <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
-          <div><p class="stat-label">Donaciones del mes</p><p class="stat-value">Q5,728</p></div>
-        </div>
+      <!-- Fila de Tarjetas KPI -->
+      <section class="stat-row mb-4">
         <div class="stat-pill tone-sage">
-          <div class="stat-icon"><i class="bi bi-arrow-down-circle"></i></div>
-          <div><p class="stat-label">Ingresos de hoy</p><p class="stat-value">Q480</p></div>
+          <div class="stat-icon"><i class="bi bi-cash-stack"></i></div>
+          <div>
+            <p class="stat-label">Donaciones del Mes</p>
+            <p class="stat-value" id="kpiDonaciones">Q0.00</p>
+          </div>
         </div>
-        <div class="stat-pill tone-rose">
-          <div class="stat-icon"><i class="bi bi-arrow-up-circle"></i></div>
-          <div><p class="stat-label">Egresos de hoy</p><p class="stat-value">Q210</p></div>
+        <div class="stat-pill tone-gold">
+          <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+          <div>
+            <p class="stat-label">Cobros Pendientes</p>
+            <p class="stat-value" id="kpiPendientes">Q0.00</p>
+          </div>
         </div>
         <div class="stat-pill tone-brand">
-          <div class="stat-icon"><i class="bi bi-wallet2"></i></div>
-          <div><p class="stat-label">Saldo en caja</p><p class="stat-value">Q2,340</p></div>
+          <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+          <div>
+            <p class="stat-label">Ingresos Cobrados</p>
+            <p class="stat-value" id="kpiIngresos">Q0.00</p>
+          </div>
+        </div>
+        <div class="stat-pill tone-rose">
+          <div class="stat-icon"><i class="bi bi-receipt-cutoff"></i></div>
+          <div>
+            <p class="stat-label">Gastos del Mes</p>
+            <p class="stat-value" id="kpiGastos">Q0.00</p>
+          </div>
         </div>
       </section>
 
-      <section class="panel-card">
-        <div class="panel-card-header">
-          <h3>Movimientos recientes</h3>
-          <div class="filter-tabs">
-            <button class="tab-btn active">Todos</button>
-            <button class="tab-btn">Donaciones</button>
-            <button class="tab-btn">Egresos</button>
-          </div>
+      <!-- Navegación por Pestañas del Módulo -->
+      <ul class="nav nav-tabs mb-3" id="tabCaja" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active fw-bold" id="tab-cargos-link" data-bs-toggle="tab" data-bs-target="#tab-cargos" type="button">
+            <i class="bi bi-credit-card me-1"></i> Cargos Pendientes
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-bold" id="tab-donaciones-link" data-bs-toggle="tab" data-bs-target="#tab-donaciones" type="button">
+            <i class="bi bi-heart-fill me-1 text-danger"></i> Registro de Donaciones
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-bold" id="tab-gastos-link" data-bs-toggle="tab" data-bs-target="#tab-gastos" type="button">
+            <i class="bi bi-journal-minus me-1"></i> Gastos Operativos
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-bold" id="tab-fundacion-link" data-bs-toggle="tab" data-bs-target="#tab-fundacion" type="button">
+            <i class="bi bi-building-check me-1"></i> Pagos a Fundación
+          </button>
+        </li>
+      </ul>
+
+      <!-- Contenedor Principal de Pestañas -->
+      <div class="tab-content">
+        
+        <!-- 1. Pestaña: Cargos Pendientes de Cobro -->
+        <div class="tab-pane fade show active" id="tab-cargos">
+          <section class="panel-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold mb-0">Cuentas Por Cobrar a Familiares</h5>
+              <button id="btnGenerarCuotasMes" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-calendar-plus me-1"></i>Generar Cuotas del Mes
+              </button>
+            </div>
+            <div class="mb-3">
+              <input type="text" id="txtBuscarCargo" class="form-control" placeholder="Buscar por paciente, expediente o familiar...">
+            </div>
+            <div class="table-responsive">
+              <table class="table table-custom align-middle">
+                <thead>
+                  <tr>
+                    <th>Paciente / Expediente</th>
+                    <th>Familiar Responsable</th>
+                    <th>Concepto</th>
+                    <th>Descripción</th>
+                    <th>Fecha</th>
+                    <th>Monto Final</th>
+                    <th class="text-end">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaCargosBody">
+                  <tr><td colspan="7" class="text-center text-muted py-4">Cargando cuentas pendientes...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
         </div>
-        <div class="table-responsive">
-          <table class="table table-custom">
-            <thead>
-              <tr>
-                <th>Concepto</th>
-                <th>Donante / Origen</th>
-                <th>Tipo</th>
-                <th>Fecha</th>
-                <th class="text-end">Monto</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="fw-semibold">Donación en efectivo</td>
-                <td>Familia Solórzano</td>
-                <td><span class="badge-status-activo">Ingreso</span></td>
-                <td>21/09/2026</td>
-                <td class="text-end fw-semibold" style="color: var(--sage);">+ Q480.00</td>
-              </tr>
-              <tr>
-                <td class="fw-semibold">Compra insumos de aseo</td>
-                <td>Proveedor La Económica</td>
-                <td><span class="badge-status-observacion">Egreso</span></td>
-                <td>21/09/2026</td>
-                <td class="text-end fw-semibold" style="color: var(--rose);">- Q210.00</td>
-              </tr>
-              <tr>
-                <td class="fw-semibold">Donación mensual</td>
-                <td>Iglesia El Buen Pastor</td>
-                <td><span class="badge-status-activo">Ingreso</span></td>
-                <td>19/09/2026</td>
-                <td class="text-end fw-semibold" style="color: var(--sage);">+ Q1,500.00</td>
-              </tr>
-              <tr>
-                <td class="fw-semibold">Donación en especie</td>
-                <td>Anónimo</td>
-                <td><span class="badge-status-activo">Ingreso</span></td>
-                <td>17/09/2026</td>
-                <td class="text-end fw-semibold" style="color: var(--sage);">+ Q650.00</td>
-              </tr>
-            </tbody>
-          </table>
+
+        <!-- 2. Pestaña: Registro de Donaciones -->
+        <div class="tab-pane fade" id="tab-donaciones">
+          <section class="panel-card">
+            <div class="panel-card-header d-flex justify-content-between align-items-center">
+              <h3>Historial de Donaciones Recibidas</h3>
+              <button class="btn btn-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#modalNuevaDonacion">
+                <i class="bi bi-plus-lg me-1"></i> Nueva Donación
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-custom align-middle">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Donante</th>
+                    <th>Tipo Donante</th>
+                    <th>Monto</th>
+                    <th>Registrado Por</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaDonacionesBody">
+                  <tr><td colspan="5" class="text-center text-muted py-4">Cargando donaciones...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
         </div>
-      </section>
+
+        <!-- 3. Pestaña: Gastos Operativos -->
+        <div class="tab-pane fade" id="tab-gastos">
+          <section class="panel-card">
+            <div class="panel-card-header d-flex justify-content-between align-items-center">
+              <h3>Control de Gastos del Asilo</h3>
+              <button class="btn btn-outline-danger btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#modalNuevoGasto">
+                <i class="bi bi-dash-circle me-1"></i> Registrar Gasto
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-custom align-middle">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Categoría</th>
+                    <th>Descripción</th>
+                    <th>Monto</th>
+                    <th>Registrado Por</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaGastosBody">
+                  <tr><td colspan="5" class="text-center text-muted py-4">Cargando gastos...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- 4. Pestaña: Pagos a la Fundación -->
+        <div class="tab-pane fade" id="tab-fundacion">
+          <section class="panel-card">
+            <div class="panel-card-header d-flex justify-content-between align-items-center">
+              <h3>Historial de Liquidaciones a la Fundación</h3>
+              <button class="btn btn-outline-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#modalNuevoPagoFundacion">
+                <i class="bi bi-plus-circle me-1"></i> Registrar Pago a Fundación
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-custom align-middle">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Fundación Beneficiaria</th>
+                    <th>Concepto de Liquidación</th>
+                    <th>Monto Pagado</th>
+                    <th>Registrado Por</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaPagosFundacionBody">
+                  <tr><td colspan="5" class="text-center text-muted py-4">Cargando pagos a la fundación...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+      </div> <!-- Cierre de tab-content -->
     </main>
   </div>
 
+  <!-- Modal 1: Procesar Cobro (Consolidado e Individual) -->
+  <div class="modal fade" id="modalProcesarPago" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title fw-bold"><i class="bi bi-cash-coin me-2"></i>Registrar Cobro de Cuentas</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="formProcesarPago">
+          <input type="hidden" id="txtPagoIdPaciente">
+          <input type="hidden" id="txtPagoIdFamiliar">
+          <div class="modal-body">
+            <div class="p-3 bg-light rounded mb-3">
+              <div class="row align-items-center">
+                <div class="col-md-7">
+                  <div class="small text-muted">Paciente: <strong id="lblPagoPaciente" class="text-dark">-</strong></div>
+                  <div class="small text-muted">Familiar: <strong id="lblPagoFamiliar" class="text-dark">-</strong></div>
+                </div>
+                <div class="col-md-5 text-md-end">
+                  <span class="badge bg-primary fs-6" id="lblCantidadCargos">1 cuenta seleccionada</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lista desglosada de cargos a liquidar -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Detalle de Servicios / Productos</label>
+              <ul class="list-group list-group-flush border rounded" id="listaCargosCobro" style="max-height: 200px; overflow-y: auto;"></ul>
+            </div>
+
+            <!-- Panel de Cálculo con Descuento Adicional -->
+            <div class="row g-2 bg-light p-3 rounded mb-3 align-items-center">
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold text-muted mb-1">Subtotal Acumulado</label>
+                <div class="fs-5 fw-bold text-secondary" id="lblSubtotalPago">Q0.00</div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold text-danger mb-1">Descuento Extra Caja (Q)</label>
+                <input type="number" step="0.01" min="0" id="txtDescuentoAdicional" class="form-control text-danger fw-bold" value="0.00">
+              </div>
+              <div class="col-md-4 text-md-end">
+                <label class="form-label small fw-semibold text-muted mb-1">Total a Cobrar</label>
+                <div class="fs-3 fw-bold text-success" id="lblTotalFinalPago">Q0.00</div>
+              </div>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Método de Pago *</label>
+                <select id="selMetodoPago" class="form-select" required>
+                  <option value="efectivo" selected>Efectivo</option>
+                  <option value="transferencia">Transferencia Bancaria</option>
+                  <option value="deposito">Depósito Bancario</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Número de Boleta / Referencia</label>
+                <input type="text" id="txtReferenciaPago" class="form-control" placeholder="Ej: TR-45812 (Opcional)">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-1"></i> Confirmar y Liquidar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Registrar Donación -->
+  <div class="modal fade" id="modalNuevaDonacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title fw-bold"><i class="bi bi-heart me-2 text-danger"></i>Registrar Nueva Donación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="formNuevaDonacion">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Nombre del Donante *</label>
+              <input type="text" id="txtNombreDonante" class="form-control" placeholder="Ej: Banco Industrial / Juan Pérez" required>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Tipo de Donante *</label>
+                <select id="selTipoDonante" class="form-select" required>
+                  <option value="particular" selected>Particular</option>
+                  <option value="empresa">Empresa</option>
+                  <option value="gobierno">Gobierno</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Monto (Q) *</label>
+                <input type="number" step="0.01" min="1" id="txtMontoDonacion" class="form-control" placeholder="0.00" required>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Fecha de Recepción</label>
+              <input type="date" id="txtFechaDonacion" class="form-control">
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Guardar Donación</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Registrar Gasto Operativo -->
+  <div class="modal fade" id="modalNuevoGasto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title fw-bold"><i class="bi bi-journal-minus me-2 text-danger"></i>Registrar Gasto Operativo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="formNuevoGasto">
+          <div class="modal-body">
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Categoría del Gasto *</label>
+                <select id="selCategoriaGasto" class="form-select" required>
+                  <option value="luz">Energía Eléctrica</option>
+                  <option value="agua">Servicio de Agua</option>
+                  <option value="telefono_internet">Teléfono e Internet</option>
+                  <option value="alimentos">Alimentos y Víveres</option>
+                  <option value="limpieza">Artículos de Limpieza</option>
+                  <option value="mantenimiento">Mantenimiento</option>
+                  <option value="otros" selected>Otros Gastos</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Monto (Q) *</label>
+                <input type="number" step="0.01" min="0.01" id="txtMontoGasto" class="form-control" placeholder="0.00" required>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Descripción / Factura *</label>
+              <input type="text" id="txtDescripcionGasto" class="form-control" placeholder="Ej: Pago de recibo EEGSA Octubre 2026" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Fecha del Gasto</label>
+              <input type="date" id="txtFechaGasto" class="form-control">
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-save me-1"></i> Registrar Gasto</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Registrar Pago a Fundación con Desglose -->
+  <div class="modal fade" id="modalNuevoPagoFundacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-light">
+          <h5 class="modal-title fw-bold text-primary"><i class="bi bi-building-check me-2"></i>Liquidación a la Fundación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="formNuevoPagoFundacion">
+          <div class="modal-body">
+            
+            <!-- Tarjetas de Desglose por Servicio -->
+            <label class="form-label fw-semibold text-muted mb-2">Desglose de Servicios Cobrados en Caja</label>
+            <div class="row g-2 mb-3">
+              <div class="col-md-4">
+                <div class="p-3 border rounded bg-light text-center">
+                  <small class="text-muted d-block fw-semibold"><i class="bi bi-heart-pulse me-1 text-primary"></i>Consultas Médicas</small>
+                  <strong class="fs-5 text-primary" id="lblResumenConsultas">Q0.00</strong>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-3 border rounded bg-light text-center">
+                  <small class="text-muted d-block fw-semibold"><i class="bi bi-file-earmark-medical me-1 text-info"></i>Laboratorio / Exámenes</small>
+                  <strong class="fs-5 text-info" id="lblResumenExamenes">Q0.00</strong>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="p-3 border rounded bg-light text-center">
+                  <small class="text-muted d-block fw-semibold"><i class="bi bi-capsule me-1 text-warning"></i>Farmacia / Medicamentos</small>
+                  <strong class="fs-5 text-warning" id="lblResumenFarmacia">Q0.00</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Balance Totalizador -->
+            <div class="p-3 bg-primary-subtle rounded mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="small text-muted">Total Generado por Servicios:</span>
+                <strong id="lblResumenTotalGenerado" class="text-dark">Q0.00</strong>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="small text-muted">(-) Liquidaciones Anteriores Transferidas:</span>
+                <strong id="lblResumenTotalLiquidado" class="text-danger">- Q0.00</strong>
+              </div>
+              <hr class="my-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-dark">Saldo Pendiente a Transferir:</span>
+                <span class="fs-4 fw-bold text-success" id="lblResumenSaldoPendiente">Q0.00</span>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Concepto / Detalle de la Transferencia *</label>
+              <input type="text" id="txtConceptoPagoFundacion" class="form-control" placeholder="Ej: Liquidación consultas, exámenes y medicamentos - Octubre 2026" required>
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Monto a Liquidar (Q) *</label>
+                <input type="number" step="0.01" min="0.01" id="txtMontoPagoFundacion" class="form-control fw-bold fs-5 text-success" placeholder="0.00" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Fecha de Transferencia</label>
+                <input type="date" id="txtFechaPagoFundacion" class="form-control">
+              </div>
+            </div>
+
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-cash-stack me-1"></i> Registrar Liquidación</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/theme.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/caja_donaciones.js"></script>
 </body>
 </html>

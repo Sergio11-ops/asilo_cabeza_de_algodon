@@ -290,6 +290,7 @@ async function guardarNuevaReceta(e) {
         const modalInst = bootstrap.Modal.getInstance(elModal);
         if (modalInst) modalInst.hide();
 
+        cargarCombos();
         cargarDatos();
     } catch (err) {
         alert('Error al emitir receta: ' + err.message);
@@ -311,7 +312,7 @@ window.verDetalleReceta = function(idReceta) {
             <td class="fw-semibold">${m.medicamento_nombre}</td>
             <td>${m.cantidad} unid.</td>
             <td><span class="badge ${m.entregado === 1 ? 'bg-success' : 'bg-warning text-dark'}">${m.entregado === 1 ? 'Entregado' : 'Pendiente'}</span></td>
-            <td>Q${m.precio_aplicado.toFixed(2)}</td>
+            <td>Q${parseFloat(m.precio_aplicado || 0).toFixed(2)}</td>
             <td><small>${m.dosis || 'N/A'} - ${m.indicaciones || 'S/I'}</small></td>
             <td class="text-center"><i class="bi ${m.entregado === 1 ? 'bi-check-circle-fill text-success' : 'bi-clock text-warning'}"></i></td>
         </tr>
@@ -319,7 +320,7 @@ window.verDetalleReceta = function(idReceta) {
 
     const formDesp = document.getElementById('formDespacharReceta');
     const btnSubmit = formDesp.querySelector('button[type="submit"]');
-    if (btnSubmit) btnSubmit.style.display = 'none'; // Ocultar guardar en modo lectura
+    if (btnSubmit) btnSubmit.style.display = 'none';
 
     const elModal = document.getElementById('modalDespacharReceta');
     const modalInst = bootstrap.Modal.getOrCreateInstance(elModal);
@@ -336,18 +337,38 @@ window.abrirModalDespacho = function(idReceta) {
 
     const tbody = document.getElementById('tablaDespachoBody');
     tbody.innerHTML = receta.medicamentos.map(m => {
-        const deshabilitado = m.entregado === 1 || m.stock_actual < m.cantidad;
-        const check = m.entregado === 1 ? 'checked disabled' : (m.stock_actual >= m.cantidad ? 'checked' : 'disabled');
+        // Buscar el stock real en el inventario global cargado (medicamentosGlobal)
+        const medInfo = medicamentosGlobal.find(med => med.id_medicamento === m.id_medicamento);
+        const stockDisponible = medInfo ? medInfo.stock : (m.stock_actual !== undefined ? m.stock_actual : (m.stock !== undefined ? m.stock : 0));
+
+        const entregado = m.entregado === 1;
+        const tieneStock = stockDisponible >= m.cantidad;
+
+        let checkAttr = '';
+        if (entregado) {
+            checkAttr = 'checked disabled';
+        } else if (tieneStock) {
+            checkAttr = 'checked';
+        } else {
+            checkAttr = 'disabled';
+        }
+
+        const idDetalleReal = m.id_detalle || m.id_detalle_receta || m.id;
+        const precioReal = m.precio_aplicado !== undefined ? m.precio_aplicado : (m.precio !== undefined ? m.precio : 0);
 
         return `
-            <tr data-id-detalle="${m.id_detalle}" data-id-med="${m.id_medicamento}" data-cant="${m.cantidad}" data-precio="${m.precio_aplicado}">
+            <tr data-id-detalle="${idDetalleReal}" data-id-med="${m.id_medicamento}" data-cant="${m.cantidad}" data-precio="${precioReal}">
                 <td class="fw-semibold">${m.medicamento_nombre}</td>
                 <td>${m.cantidad} unid.</td>
-                <td><span class="badge ${m.stock_actual < m.cantidad ? 'bg-danger' : 'bg-secondary'}">${m.stock_actual} unid.</span></td>
-                <td>Q${m.precio_aplicado.toFixed(2)}</td>
-                <td><small>${m.dosis} - ${m.indicaciones}</small></td>
+                <td>
+                    <span class="badge ${tieneStock ? 'bg-success' : 'bg-danger'}">
+                        ${stockDisponible} unid.
+                    </span>
+                </td>
+                <td>Q${parseFloat(precioReal).toFixed(2)}</td>
+                <td><small>${m.dosis || ''} ${m.indicaciones ? '- ' + m.indicaciones : ''}</small></td>
                 <td class="text-center">
-                    <input type="checkbox" class="form-check-input chk-entregar" ${check}>
+                    <input type="checkbox" class="form-check-input chk-entregar" ${checkAttr}>
                 </td>
             </tr>
         `;
@@ -369,11 +390,13 @@ async function guardarDespacho(e) {
 
     const items = Array.from(filas).map(tr => {
         const chk = tr.querySelector('.chk-entregar');
+        const idDet = parseInt(tr.dataset.idDetalle);
         return {
-            id_detalle: parseInt(tr.dataset.idDetalle),
+            id_detalle: isNaN(idDet) ? null : idDet,
+            id_detalle_receta: isNaN(idDet) ? null : idDet,
             id_medicamento: parseInt(tr.dataset.idMed),
             cantidad: parseInt(tr.dataset.cant),
-            precio_aplicado: parseFloat(tr.dataset.precio),
+            precio_aplicado: parseFloat(tr.dataset.precio || 0),
             entregar: chk && chk.checked && !chk.disabled
         };
     }).filter(i => i.entregar);
@@ -404,7 +427,6 @@ async function guardarDespacho(e) {
         alert('Error en despacho: ' + err.message);
     }
 }
-
 
 window.editarMedicamento = function(idMed) {
     const med = medicamentosGlobal.find(m => m.id_medicamento === idMed);

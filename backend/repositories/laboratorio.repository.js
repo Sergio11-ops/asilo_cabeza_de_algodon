@@ -1,5 +1,6 @@
 // backend/repositories/laboratorio.repository.js
 const db = require('../config/db');
+const cajaRepository = require('./caja.repository');
 
 class LaboratorioRepository {
     async obtenerCatalogoExamenes() {
@@ -22,27 +23,42 @@ class LaboratorioRepository {
         return filas;
     }
 
-    async obtenerOCrearVisitaParaPaciente(idPaciente) {
-        // 1. Obtener o crear la Ficha Médica (expediente) del paciente
+  async obtenerOCrearVisitaParaPaciente(idPaciente, idMedicoUsuario) {
         let idFicha;
         const [fichas] = await db.query(`SELECT id_ficha FROM ficha_medica WHERE id_paciente = ? LIMIT 1`, [idPaciente]);
 
         if (fichas.length > 0) {
             idFicha = fichas[0].id_ficha;
         } else {
-            const [nuevaFicha] = await db.query(`INSERT INTO ficha_medica (id_paciente, fecha_creacion) VALUES (?, NOW())`, [idPaciente]);
+            const [nuevaFicha] = await db.query(`INSERT INTO ficha_medica (id_paciente, fecha_registro) VALUES (?, CURDATE())`, [idPaciente]);
             idFicha = nuevaFicha.insertId;
         }
 
-        // 2. Obtener un médico asignado por defecto
-        const [medicos] = await db.query(`SELECT id_medico FROM medico LIMIT 1`);
-        const idMedico = medicos.length > 0 ? medicos[0].id_medico : 1;
+        // 1. REUTILIZAR VISITA: Buscar si el paciente ya tiene una visita médica creada el día de hoy
+        const [visitasHoy] = await db.query(`
+            SELECT id_visita FROM visita_medica 
+            WHERE (id_paciente = ? OR id_ficha = ?) AND DATE(fecha_visita) = CURDATE()
+            ORDER BY id_visita DESC LIMIT 1
+        `, [idPaciente, idFicha]);
 
-        // 3. Crear la visita médica vinculada ÚNICAMENTE a la ficha del paciente (id_solicitud = NULL)
+        if (visitasHoy.length > 0) {
+            return visitasHoy[0].id_visita; // Retorna la visita de la consulta abierta hoy
+        }
+
+        // 2. SOLO si no tiene visita previa hoy, determinar el médico y crear una nueva
+        let idMedico = 1;
+        if (idMedicoUsuario) {
+            const [medicos] = await db.query(`SELECT id_medico FROM medico WHERE id_usuario = ? LIMIT 1`, [idMedicoUsuario]);
+            if (medicos.length > 0) idMedico = medicos[0].id_medico;
+        } else {
+            const [medicos] = await db.query(`SELECT id_medico FROM medico LIMIT 1`);
+            if (medicos.length > 0) idMedico = medicos[0].id_medico;
+        }
+
         const [nuevaVisita] = await db.query(`
-            INSERT INTO visita_medica (id_ficha, id_solicitud, id_medico, fecha_visita, observaciones)
-            VALUES (?, NULL, ?, NOW(), 'Orden de Laboratorio Directa')
-        `, [idFicha, idMedico]);
+            INSERT INTO visita_medica (id_paciente, id_ficha, id_solicitud, id_medico, fecha_visita, observaciones, costo_consulta)
+            VALUES (?, ?, NULL, ?, NOW(), 'Orden de Laboratorio Directa', 0.00)
+        `, [idPaciente, idFicha, idMedico]);
 
         return nuevaVisita.insertId;
     }
@@ -96,7 +112,6 @@ class LaboratorioRepository {
         `;
         const [filas] = await db.query(query);
 
-        // Agrupar filas por id_visita
         const ordenesMap = new Map();
 
         filas.forEach(f => {
@@ -129,7 +144,7 @@ class LaboratorioRepository {
 
     async guardarResultadosLote(resultadosList, idLaboratorista) {
         for (const item of resultadosList) {
-            const query = `
+            await db.query(`
                 UPDATE visita_examen
                 SET estado = ?,
                     resultado = ?,
@@ -137,8 +152,31 @@ class LaboratorioRepository {
                     fecha_resultado = NOW(),
                     id_laboratorista = ?
                 WHERE id_visita_examen = ?
-            `;
-            await db.query(query, [item.estado, item.resultado, item.observaciones || null, idLaboratorista, item.id_visita_examen]);
+            `, [item.estado, item.resultado, item.observaciones || null, idLaboratorista, item.id_visita_examen]);
+
+            // Si el examen fue completado, vinculamos id_visita e id_visita_examen al cargo de Caja
+            if (item.estado === 'completado') {
+                const [[infoExamen]] = await db.query(`
+                    SELECT ve.id_visita, ve.precio_aplicado, fm.id_paciente, e.nombre AS examen_nombre
+                    FROM visita_examen ve
+                    INNER JOIN visita_medica vm ON ve.id_visita = vm.id_visita
+                    INNER JOIN ficha_medica fm ON vm.id_ficha = fm.id_ficha
+                    INNER JOIN examen e ON ve.id_examen = e.id_examen
+                    WHERE ve.id_visita_examen = ?
+                `, [item.id_visita_examen]);
+
+                if (infoExamen && infoExamen.id_paciente) {
+                    await cajaRepository.generarCargo({
+                        id_paciente: infoExamen.id_paciente,
+                        concepto: 'examen',
+                        descripcion: `Laboratorio: ${infoExamen.examen_nombre}`,
+                        monto_original: infoExamen.precio_aplicado,
+                        id_visita: infoExamen.id_visita,
+                        id_visita_examen: item.id_visita_examen,
+                        id_usuario: idLaboratorista
+                    });
+                }
+            }
         }
         return true;
     }

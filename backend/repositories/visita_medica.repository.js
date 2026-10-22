@@ -1,5 +1,6 @@
 // backend/repositories/visita_medica.repository.js
 const db = require('../config/db');
+const cajaRepository = require('./caja.repository');
 
 class VisitaMedicaRepository {
     async listarCitasEspecialidad() {
@@ -43,7 +44,8 @@ class VisitaMedicaRepository {
         const [filas] = await db.query(query);
         return filas;
     }
-async obtenerFichaCompletaPaciente(idPaciente) {
+
+    async obtenerFichaCompletaPaciente(idPaciente) {
         if (!idPaciente || isNaN(idPaciente)) {
             throw { status: 400, message: 'ID de paciente no válido.' };
         }
@@ -87,10 +89,10 @@ async obtenerFichaCompletaPaciente(idPaciente) {
             FROM visita_examen ve
             INNER JOIN examen ex ON ve.id_examen = ex.id_examen
             INNER JOIN visita_medica vm ON ve.id_visita = vm.id_visita
-            INNER JOIN ficha_medica fm ON vm.id_ficha = fm.id_ficha
-            WHERE fm.id_paciente = ? AND ve.estado = 'completado'
+            LEFT JOIN ficha_medica fm ON vm.id_ficha = fm.id_ficha
+            WHERE (vm.id_paciente = ? OR fm.id_paciente = ?) AND ve.estado = 'completado'
             ORDER BY ve.fecha_resultado DESC
-        `, [idPaciente]);
+        `, [idPaciente, idPaciente]);
 
         return {
             paciente,
@@ -101,66 +103,124 @@ async obtenerFichaCompletaPaciente(idPaciente) {
     }
 
     async guardarDiagnostico(datos) {
-        const { id_solicitud, id_paciente, id_medico, diagnostico, observaciones } = datos;
+        const { diagnostico, observaciones, costo_consulta, id_usuario } = datos;
+        const precioConsulta = parseFloat(costo_consulta) > 0 ? parseFloat(costo_consulta) : 150.00;
 
-        if (!id_paciente) {
-            throw new Error('El ID del paciente es obligatorio.');
+        // 1. Capturar el ID enviado desde la pantalla (cita o solicitud)
+        const idRecibido = datos.id_solicitud || datos.idSolicitud || datos.id_cita || datos.idCita || datos.id_visita || datos.idVisita || datos.id;
+
+        if (!idRecibido) {
+            throw new Error('No se recibió un identificador válido para guardar el diagnóstico.');
         }
 
-        // 1. Obtener o verificar ficha médica del paciente
-        let [fichas] = await db.query(`SELECT id_ficha FROM ficha_medica WHERE id_paciente = ? LIMIT 1`, [id_paciente]);
-        let idFicha;
-        if (fichas.length > 0) {
-            idFicha = fichas[0].id_ficha;
-        } else {
-            const [nuevaFicha] = await db.query(`INSERT INTO ficha_medica (id_paciente, fecha_registro) VALUES (?, CURDATE())`, [id_paciente]);
-            idFicha = nuevaFicha.insertId;
+        let idSolicitud = datos.id_solicitud || datos.idSolicitud || null;
+        let idPaciente = datos.id_paciente || datos.idPaciente || null;
+        let idMedico = datos.id_medico || datos.idMedico || null;
+        let motivoVisita = datos.motivo_visita || datos.motivo || 'Consulta Médica';
+
+        // 2. Buscar datos en Cita Médica
+        const [[cita]] = await db.query(`
+            SELECT id_cita, id_solicitud, id_medico 
+            FROM cita_medica 
+            WHERE id_cita = ? OR id_solicitud = ?
+            LIMIT 1
+        `, [idRecibido, idRecibido]);
+
+        if (cita) {
+            idSolicitud = cita.id_solicitud;
+            if (!idMedico) idMedico = cita.id_medico;
         }
 
-        // 2. Obtener id_medico válido
-        let idMedicoValido = 1;
-        if (id_medico) {
-            const [medicos] = await db.query(`SELECT id_medico FROM medico WHERE id_usuario = ? LIMIT 1`, [id_medico]);
-            if (medicos.length > 0) idMedicoValido = medicos[0].id_medico;
-        }
+        // 3. Buscar datos en Solicitud Médica
+        if (idSolicitud || idRecibido) {
+            const [[sm]] = await db.query(`
+                SELECT id_solicitud, id_paciente, motivo, id_medico_general 
+                FROM solicitud_medica 
+                WHERE id_solicitud = COALESCE(?, ?)
+                LIMIT 1
+            `, [idSolicitud, idRecibido]);
 
-        // 3. Obtener motivo de la solicitud
-        let motivo = 'Consulta por Especialidad';
-        if (id_solicitud) {
-            const [solicitudes] = await db.query(`SELECT motivo FROM solicitud_medica WHERE id_solicitud = ?`, [id_solicitud]);
-            if (solicitudes.length > 0 && solicitudes[0].motivo) {
-                motivo = solicitudes[0].motivo;
+            if (sm) {
+                idSolicitud = sm.id_solicitud;
+                if (!idPaciente) idPaciente = sm.id_paciente;
+                if (!motivoVisita || motivoVisita === 'Consulta Médica') motivoVisita = sm.motivo;
+                if (!idMedico) idMedico = sm.id_medico_general;
             }
         }
 
-        // 4. Buscar si ya existe la visita registrada
-        let idVisita;
-        let [visitas] = [];
-        if (id_solicitud) {
-            [visitas] = await db.query(`SELECT id_visita FROM visita_medica WHERE id_solicitud = ? LIMIT 1`, [id_solicitud]);
+        // 4. Fallback si se envió directamente el id_paciente
+        if (!idPaciente) {
+            const [[pac]] = await db.query(`SELECT id_paciente FROM paciente WHERE id_paciente = ?`, [idRecibido]);
+            if (pac) idPaciente = pac.id_paciente;
         }
 
-        if (visitas && visitas.length > 0) {
-            idVisita = visitas[0].id_visita;
+        if (!idPaciente) {
+            throw new Error('No se pudo determinar el paciente para esta consulta.');
+        }
+
+        // 5. Obtener o generar Ficha Médica
+        let idFicha = null;
+        const [[ficha]] = await db.query(`SELECT id_ficha FROM ficha_medica WHERE id_paciente = ? LIMIT 1`, [idPaciente]);
+        if (ficha) {
+            idFicha = ficha.id_ficha;
+        } else {
+            const [resFicha] = await db.query(`
+                INSERT INTO ficha_medica (id_paciente, fecha_registro, observaciones)
+                VALUES (?, CURDATE(), 'Ficha generada automáticamente')
+            `, [idPaciente]);
+            idFicha = resFicha.insertId;
+        }
+
+        // 6. Verificar si la visita existe FÍSICAMENTE en la base de datos
+        let idVisitaReal = null;
+        if (idSolicitud) {
+            const [[vm]] = await db.query(`SELECT id_visita FROM visita_medica WHERE id_solicitud = ? LIMIT 1`, [idSolicitud]);
+            if (vm) idVisitaReal = vm.id_visita;
+        }
+
+        // 7. Insertar (si no existe) o Actualizar (si ya existía)
+        if (idVisitaReal) {
             await db.query(`
                 UPDATE visita_medica 
-                SET id_paciente = ?, id_medico = ?, motivo_visita = ?, diagnostico = ?, observaciones = ? 
+                SET id_solicitud = ?,
+                    id_paciente = ?, 
+                    id_ficha = ?, 
+                    id_medico = ?,
+                    fecha_visita = NOW(),
+                    motivo_visita = ?,
+                    diagnostico = ?, 
+                    observaciones = ?, 
+                    costo_consulta = ?
                 WHERE id_visita = ?
-            `, [id_paciente, idMedicoValido, motivo, diagnostico, observaciones, idVisita]);
+            `, [idSolicitud, idPaciente, idFicha, idMedico, motivoVisita, diagnostico, observaciones, precioConsulta, idVisitaReal]);
         } else {
-            const [nuevaVisita] = await db.query(`
-                INSERT INTO visita_medica (id_paciente, id_solicitud, id_ficha, id_medico, fecha_visita, motivo_visita, diagnostico, observaciones)
-                VALUES (?, ?, ?, ?, NOW(), ?, ?, ?)
-            `, [id_paciente, id_solicitud || null, idFicha, idMedicoValido, motivo, diagnostico, observaciones]);
-            idVisita = nuevaVisita.insertId;
+            const [resInsert] = await db.query(`
+                INSERT INTO visita_medica 
+                    (id_solicitud, id_paciente, id_ficha, id_medico, fecha_visita, motivo_visita, diagnostico, observaciones, costo_consulta)
+                VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?)
+            `, [idSolicitud, idPaciente, idFicha, idMedico, motivoVisita, diagnostico, observaciones, precioConsulta]);
+
+            idVisitaReal = resInsert.insertId;
         }
 
-        // 5. Marcar solicitud como atendida
-        if (id_solicitud) {
-            await db.query(`UPDATE solicitud_medica SET estado = 'atendida' WHERE id_solicitud = ?`, [id_solicitud]);
+        // 8. Marcar solicitud como atendida
+        if (idSolicitud) {
+            await db.query(`UPDATE solicitud_medica SET estado = 'atendida' WHERE id_solicitud = ?`, [idSolicitud]);
         }
 
-        return idVisita;
+        // 9. Registrar cargo financiero en Caja
+        if (idPaciente && idVisitaReal) {
+            await cajaRepository.generarCargo({
+                id_paciente: idPaciente,
+                concepto: 'consulta',
+                descripcion: 'Consulta Médica Especialidad',
+                monto_original: precioConsulta,
+                id_visita: idVisitaReal,
+                id_usuario: id_usuario || 1
+            });
+        }
+
+        return true;
     }
 }
 

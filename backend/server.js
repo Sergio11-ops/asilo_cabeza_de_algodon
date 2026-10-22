@@ -12,6 +12,9 @@ const citaRoutes = require('./routes/cita.routes');
 const laboratorioRoutes = require('./routes/laboratorio.routes');
 const farmaciaRoutes = require('./routes/farmacia.routes');
 const visitaMedicaRoutes = require('./routes/visita_medica.routes');
+const cajaRoutes = require('./routes/caja.routes'); 
+const dashboardRoutes = require('./routes/dashboard.routes');
+const reportesRoutes = require('./routes/reportes.routes'); 
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -38,7 +41,9 @@ app.use('/api/citas', citaRoutes);
 app.use('/api/laboratorio', laboratorioRoutes);
 app.use('/api/farmacia', farmaciaRoutes);
 app.use('/api/visita-medica', visitaMedicaRoutes);
-
+app.use('/api/caja', cajaRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/reportes', reportesRoutes);                   // <--- Registrar
 // Servidor escuchando
 app.listen(PORT, () => {
     console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);

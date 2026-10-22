@@ -24,7 +24,7 @@ class PacienteRepository {
         const query = `
             SELECT p.id_paciente, p.expediente, p.dpi, p.nombres, p.apellidos, 
                    p.fecha_nacimiento, p.fecha_ingreso, p.grupo_sanguineo, 
-                   p.telefono, p.direccion, p.activo, p.creado_en,
+                   p.telefono, p.direccion, p.cuota_mensual, p.activo, p.creado_en,
                    f.id_familiar, f.nombres AS familiar_nombres, f.apellidos AS familiar_apellidos, 
                    f.telefono AS familiar_telefono, pf.parentesco, pf.es_contacto_principal
             FROM paciente p
@@ -76,7 +76,7 @@ class PacienteRepository {
      */
     async obtenerPorDpi(dpi) {
         const query = `
-            SELECT id_paciente, expediente, dpi, nombres, apellidos 
+            SELECT id_paciente, expediente, dpi, nombres, apellidos, cuota_mensual 
             FROM paciente 
             WHERE dpi = ? AND activo = 1 
             LIMIT 1
@@ -126,10 +126,15 @@ class PacienteRepository {
             const correlativo = String(secuencia[0].ultimo).padStart(3, '0');
             const expedienteGenerado = `EXP-${anioActual}-${correlativo}`;
 
+            // Cuota mensual predeterminada (1500.00 si no se especifica)
+            const cuotaMensual = (datosPaciente.cuota_mensual && parseFloat(datosPaciente.cuota_mensual) > 0)
+                ? parseFloat(datosPaciente.cuota_mensual)
+                : 1500.00;
+
             // 2. Insertar Paciente
             const queryPaciente = `
-                INSERT INTO paciente (expediente, dpi, nombres, apellidos, fecha_nacimiento, fecha_ingreso, grupo_sanguineo, direccion, telefono, activo)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+                INSERT INTO paciente (expediente, dpi, nombres, apellidos, fecha_nacimiento, fecha_ingreso, grupo_sanguineo, direccion, telefono, cuota_mensual, activo)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
             `;
             const [resPaciente] = await connection.query(queryPaciente, [
                 expedienteGenerado,
@@ -140,7 +145,8 @@ class PacienteRepository {
                 datosPaciente.fecha_ingreso,
                 datosPaciente.grupo_sanguineo || null,
                 datosPaciente.direccion || null,
-                datosPaciente.telefono || null
+                datosPaciente.telefono || null,
+                cuotaMensual
             ]);
 
             const idPaciente = resPaciente.insertId;
@@ -171,14 +177,12 @@ class PacienteRepository {
                     const nombreMed = med.nombre ? med.nombre.trim() : null;
                     if (!nombreMed) continue;
 
-                    // 5a. Guardar en antecedentes del paciente
                     await connection.query(
                         `INSERT INTO paciente_medicamento (id_paciente, nombre, dosis, frecuencia, via, activo) 
                          VALUES (?, ?, ?, ?, ?, 1)`,
                         [idPaciente, nombreMed, med.dosis || null, med.frecuencia || null, med.via || null]
                     );
 
-                    // 5b. Auto-registrar o asegurar presencia en catálogo general de farmacia
                     await connection.query(
                         `INSERT INTO medicamento (nombre, descripcion, costo, stock, activo) 
                          VALUES (?, 'Registrado automáticamente desde ingreso de residente', 0.00, 0, 1)
@@ -201,7 +205,6 @@ class PacienteRepository {
                 if (famExistente.length > 0) {
                     idFamiliar = famExistente[0].id_familiar;
                     
-                    // Actualizar información del familiar si ya existía
                     const queryUpdateFam = `
                         UPDATE familiar 
                         SET nombres = ?, apellidos = ?, telefono = ?, telefono_secundario = ?, correo = ?, direccion = ?
@@ -233,7 +236,6 @@ class PacienteRepository {
                     idFamiliar = resFam.insertId;
                 }
 
-                // Vincular Paciente con Familiar
                 const queryPF = `
                     INSERT INTO paciente_familiar (id_paciente, id_familiar, parentesco, es_contacto_principal)
                     VALUES (?, ?, ?, ?)
@@ -262,11 +264,15 @@ class PacienteRepository {
         try {
             await connection.beginTransaction();
 
+            const cuotaMensual = (datosPaciente.cuota_mensual && parseFloat(datosPaciente.cuota_mensual) > 0)
+                ? parseFloat(datosPaciente.cuota_mensual)
+                : 1500.00;
+
             // 1. Actualizar Paciente
             const queryPaciente = `
                 UPDATE paciente 
                 SET nombres = ?, apellidos = ?, fecha_nacimiento = ?, fecha_ingreso = ?, 
-                    grupo_sanguineo = ?, telefono = ?, direccion = ?
+                    grupo_sanguineo = ?, telefono = ?, direccion = ?, cuota_mensual = ?
                 WHERE id_paciente = ?
             `;
             await connection.query(queryPaciente, [
@@ -277,6 +283,7 @@ class PacienteRepository {
                 datosPaciente.grupo_sanguineo || null,
                 datosPaciente.telefono || null,
                 datosPaciente.direccion || null,
+                cuotaMensual,
                 idPaciente
             ]);
 
@@ -307,7 +314,7 @@ class PacienteRepository {
                 }
             }
 
-            // 3. Actualizar Ficha Médica (solo si el payload la incluye)
+            // 3. Actualizar Ficha Médica
             if (datosFicha) {
                 await this._actualizarFichaMedica(connection, idPaciente, datosFicha);
             }
@@ -322,13 +329,7 @@ class PacienteRepository {
         }
     }
 
-    /**
-     * Sincroniza la ficha médica dentro de la transacción recibida:
-     * observaciones, psicopatologías y medicamentos de cajón.
-     * Cada parte se toca solo si viene en el payload.
-     */
     async _actualizarFichaMedica(connection, idPaciente, ficha) {
-        // 1. Observaciones
         if (ficha.observaciones !== undefined) {
             const [fichas] = await connection.query(
                 'SELECT id_ficha FROM ficha_medica WHERE id_paciente = ? LIMIT 1',
@@ -347,9 +348,6 @@ class PacienteRepository {
             }
         }
 
-        // 2. Psicopatologías: se agregan las nuevas y se quitan las desmarcadas.
-        //    Solo se pueden quitar condiciones conocidas (las que se muestran como casillas);
-        //    cualquier otra que ya estuviera guardada se respeta.
         if (Array.isArray(ficha.psicopatologias)) {
             const norm = (t) => String(t || '').trim().toLowerCase();
 
@@ -369,9 +367,7 @@ class PacienteRepository {
             try {
                 const [catalogo] = await connection.query('SELECT nombre FROM psicopatologia');
                 catalogo.forEach(r => conocidas.add(norm(r.nombre)));
-            } catch (e) {
-                // El catálogo es opcional; se usa solo el mapa de respaldo.
-            }
+            } catch (e) {}
 
             for (const r of actuales) {
                 const n = norm(r.descripcion);
@@ -393,7 +389,6 @@ class PacienteRepository {
             }
         }
 
-        // 3. Medicamentos de cajón: actualizar, agregar y dar de baja lógica (activo = 0)
         if (Array.isArray(ficha.medicamentos_cajon)) {
             const [existentes] = await connection.query(
                 'SELECT id_paciente_medicamento, nombre FROM paciente_medicamento WHERE id_paciente = ? AND activo = 1',
@@ -424,7 +419,6 @@ class PacienteRepository {
                     sincronizarCatalogo = true;
                 }
 
-                // Igual que en el registro: asegurar el medicamento en el catálogo de farmacia
                 if (sincronizarCatalogo) {
                     await connection.query(
                         `INSERT INTO medicamento (nombre, descripcion, costo, stock, activo)

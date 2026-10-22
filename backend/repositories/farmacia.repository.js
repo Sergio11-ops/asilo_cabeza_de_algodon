@@ -1,5 +1,6 @@
 // backend/repositories/farmacia.repository.js
 const db = require('../config/db');
+const cajaRepository = require('./caja.repository');
 
 class FarmaciaRepository {
     async obtenerCatalogoMedicamentos() {
@@ -29,7 +30,7 @@ class FarmaciaRepository {
         }
     }
 
-    async obtenerOCrearVisitaParaPaciente(idPaciente, idMedicoUsuario) {
+  async obtenerOCrearVisitaParaPaciente(idPaciente, idMedicoUsuario) {
         let idFicha;
         const [fichas] = await db.query(`SELECT id_ficha FROM ficha_medica WHERE id_paciente = ? LIMIT 1`, [idPaciente]);
 
@@ -40,6 +41,18 @@ class FarmaciaRepository {
             idFicha = nuevaFicha.insertId;
         }
 
+        // 1. REUTILIZAR VISITA: Buscar si el paciente ya tiene una visita médica creada el día de hoy
+        const [visitasHoy] = await db.query(`
+            SELECT id_visita FROM visita_medica 
+            WHERE (id_paciente = ? OR id_ficha = ?) AND DATE(fecha_visita) = CURDATE()
+            ORDER BY id_visita DESC LIMIT 1
+        `, [idPaciente, idFicha]);
+
+        if (visitasHoy.length > 0) {
+            return visitasHoy[0].id_visita; // Retorna la visita de la consulta abierta hoy
+        }
+
+        // 2. SOLO si no tiene visita previa hoy, determinar el médico y crear una nueva
         let idMedico = 1;
         if (idMedicoUsuario) {
             const [medicos] = await db.query(`SELECT id_medico FROM medico WHERE id_usuario = ? LIMIT 1`, [idMedicoUsuario]);
@@ -47,8 +60,8 @@ class FarmaciaRepository {
         }
 
         const [nuevaVisita] = await db.query(`
-            INSERT INTO visita_medica (id_paciente, id_ficha, id_solicitud, id_medico, fecha_visita, observaciones)
-            VALUES (?, ?, NULL, ?, NOW(), 'Prescripción de Farmacia Directa')
+            INSERT INTO visita_medica (id_paciente, id_ficha, id_solicitud, id_medico, fecha_visita, observaciones, costo_consulta)
+            VALUES (?, ?, NULL, ?, NOW(), 'Prescripción de Farmacia Directa', 0.00)
         `, [idPaciente, idFicha, idMedico]);
 
         return nuevaVisita.insertId;
@@ -157,8 +170,7 @@ class FarmaciaRepository {
         return Array.from(recetasMap.values());
     }
 
-async despacharItemsReceta(despachoItems, idUsuarioFarmacia) {
-        // Garantiza que idFarmacia nunca sea undefined o null
+    async despacharItemsReceta(despachoItems, idUsuarioFarmacia) {
         const idFarmaciaValido = idUsuarioFarmacia || 1;
 
         for (const item of despachoItems) {
@@ -177,6 +189,30 @@ async despacharItemsReceta(despachoItems, idUsuarioFarmacia) {
                     SET stock = GREATEST(0, stock - ?) 
                     WHERE id_medicamento = ?
                 `, [item.cantidad, item.id_medicamento]);
+
+                // Obtener id_visita, id_paciente y nombre para asociar id_detalle_receta al cargo
+                const [[infoReceta]] = await db.query(`
+                    SELECT r.id_visita, fm.id_paciente, m.nombre AS medicamento_nombre
+                    FROM detalle_receta dr
+                    INNER JOIN receta r ON dr.id_receta = r.id_receta
+                    INNER JOIN visita_medica vm ON r.id_visita = vm.id_visita
+                    INNER JOIN ficha_medica fm ON vm.id_ficha = fm.id_ficha
+                    INNER JOIN medicamento m ON dr.id_medicamento = m.id_medicamento
+                    WHERE dr.id_detalle = ?
+                `, [item.id_detalle]);
+
+                if (infoReceta && infoReceta.id_paciente) {
+                    const montoTotal = parseFloat(item.precio_aplicado) * parseInt(item.cantidad);
+                    await cajaRepository.generarCargo({
+                        id_paciente: infoReceta.id_paciente,
+                        concepto: 'medicamento',
+                        descripcion: `Farmacia: ${infoReceta.medicamento_nombre} (Cant: ${item.cantidad})`,
+                        monto_original: montoTotal,
+                        id_visita: infoReceta.id_visita,
+                        id_detalle_receta: item.id_detalle,
+                        id_usuario: idFarmaciaValido
+                    });
+                }
             }
         }
         return true;
