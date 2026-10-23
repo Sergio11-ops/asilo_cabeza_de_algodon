@@ -116,9 +116,9 @@ async function restablecerPassword(req, res) {
         const [rows] = await db.query(`
             SELECT id_usuario FROM usuario 
             WHERE (correo = ? OR usuario = ?) 
-              AND token_recuperacion = ? 
-              AND token_expiracion > NOW() 
-              AND activo = 1
+            AND token_recuperacion = ? 
+            AND token_expiracion > NOW() 
+            AND activo = 1
         `, [correo, correo, pin]);
 
         if (rows.length === 0) {

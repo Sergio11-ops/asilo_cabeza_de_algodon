@@ -23,7 +23,7 @@ class LaboratorioRepository {
         return filas;
     }
 
-  async obtenerOCrearVisitaParaPaciente(idPaciente, idMedicoUsuario) {
+    async obtenerOCrearVisitaParaPaciente(idPaciente, idMedicoUsuario) {
         let idFicha;
         const [fichas] = await db.query(`SELECT id_ficha FROM ficha_medica WHERE id_paciente = ? LIMIT 1`, [idPaciente]);
 

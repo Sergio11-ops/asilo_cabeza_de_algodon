@@ -29,8 +29,8 @@ async function poblar() {
 
             await db.query(
                 `INSERT INTO usuario (nombre, apellido, correo, usuario, password_hash, rol, activo)
-                 VALUES (?, ?, ?, ?, ?, ?, 1)
-                 ON DUPLICATE KEY UPDATE 
+                VALUES (?, ?, ?, ?, ?, ?, 1)
+                ON DUPLICATE KEY UPDATE 
                     password_hash = VALUES(password_hash),
                     nombre = VALUES(nombre),
                     apellido = VALUES(apellido),
@@ -42,9 +42,9 @@ async function poblar() {
         }
 
         await db.end();
-        console.log('\n✨ ¡Semilla ejecutada con éxito!');
+        console.log('¡Semilla ejecutada con éxito!');
     } catch (error) {
-        console.error('❌ Error al poblar usuarios:', error.message);
+        console.error(' Error al poblar usuarios:', error.message);
     }
 }
 

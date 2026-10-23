@@ -23,7 +23,7 @@ class VisitaMedicaController {
         }
     }
 
-  async guardarDiagnostico(req, res) {
+    async guardarDiagnostico(req, res) {
         try {
             const idVisita = req.params.id || req.body.id_visita || req.body.id_solicitud || req.body.idVisita;
             const idUsuario = req.usuario?.id_usuario || req.usuario?.id || 1;

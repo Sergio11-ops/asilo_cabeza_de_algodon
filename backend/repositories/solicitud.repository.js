@@ -123,7 +123,7 @@ async obtenerIdMedicoPorUsuario(idUsuario) {
             LEFT JOIN usuario u ON m.id_usuario = u.id_usuario
             LEFT JOIN especialidad e ON m.id_especialidad = e.id_especialidad
             WHERE (u.activo = 1 OR m.id_usuario IS NULL) 
-              AND m.tipo = 'especialista'
+            AND m.tipo = 'especialista'
             ORDER BY nombre_completo ASC
         `);
         return filas;

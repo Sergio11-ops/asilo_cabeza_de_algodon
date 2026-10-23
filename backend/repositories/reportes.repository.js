@@ -102,8 +102,8 @@ class ReportesRepository {
             LEFT JOIN medico m ON v.id_medico = m.id_medico
             LEFT JOIN usuario u ON m.id_usuario = u.id_usuario
             WHERE (v.id_paciente = ? OR fm.id_paciente = ?)
-              AND (v.diagnostico IS NOT NULL OR v.id_solicitud IS NOT NULL)
-              AND (v.observaciones IS NULL OR (v.observaciones NOT LIKE '%Directa%' AND v.observaciones NOT LIKE '%Prescripción%'))
+            AND (v.diagnostico IS NOT NULL OR v.id_solicitud IS NOT NULL)
+            AND (v.observaciones IS NULL OR (v.observaciones NOT LIKE '%Directa%' AND v.observaciones NOT LIKE '%Prescripción%'))
             ORDER BY v.fecha_visita DESC
         `, [id_paciente, id_paciente]);
 
@@ -183,7 +183,7 @@ class ReportesRepository {
         `;
         let sqlPagos = `
             SELECT 'Pago Familiar' AS tipo, p.fecha_pago AS fecha, p.monto, 
-                   CONCAT(pac.nombres, ' ', pac.apellidos) AS fuente, p.metodo AS detalle
+                CONCAT(pac.nombres, ' ', pac.apellidos) AS fuente, p.metodo AS detalle
             FROM pago p
             JOIN paciente pac ON p.id_paciente = pac.id_paciente
             WHERE p.estado = 'registrado'

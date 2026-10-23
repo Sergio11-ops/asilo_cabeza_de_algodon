@@ -40,7 +40,7 @@ class DashboardRepository {
                 SELECT COUNT(*) AS total 
                 FROM visita_medica 
                 WHERE MONTH(fecha_visita) = MONTH(NOW()) 
-                  AND YEAR(fecha_visita) = YEAR(NOW())
+                AND YEAR(fecha_visita) = YEAR(NOW())
             `);
             return rows[0]?.total || 0;
         } catch (error) {
@@ -55,7 +55,7 @@ class DashboardRepository {
                 SELECT COALESCE(SUM(monto), 0) AS total 
                 FROM donacion 
                 WHERE MONTH(fecha) = MONTH(NOW()) 
-                  AND YEAR(fecha) = YEAR(NOW())
+                AND YEAR(fecha) = YEAR(NOW())
             `);
             return Number(rows[0]?.total) || 0;
         } catch (error) {

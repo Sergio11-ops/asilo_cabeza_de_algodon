@@ -46,5 +46,5 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reportes', reportesRoutes);                   // <--- Registrar
 // Servidor escuchando
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
+    console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
 });

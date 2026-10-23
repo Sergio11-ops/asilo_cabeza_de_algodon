@@ -23,10 +23,10 @@ class PacienteRepository {
     async obtenerTodos() {
         const query = `
             SELECT p.id_paciente, p.expediente, p.dpi, p.nombres, p.apellidos, 
-                   p.fecha_nacimiento, p.fecha_ingreso, p.grupo_sanguineo, 
-                   p.telefono, p.direccion, p.cuota_mensual, p.activo, p.creado_en,
-                   f.id_familiar, f.nombres AS familiar_nombres, f.apellidos AS familiar_apellidos, 
-                   f.telefono AS familiar_telefono, pf.parentesco, pf.es_contacto_principal
+                p.fecha_nacimiento, p.fecha_ingreso, p.grupo_sanguineo, 
+                p.telefono, p.direccion, p.cuota_mensual, p.activo, p.creado_en,
+                f.id_familiar, f.nombres AS familiar_nombres, f.apellidos AS familiar_apellidos, 
+                f.telefono AS familiar_telefono, pf.parentesco, pf.es_contacto_principal
             FROM paciente p
             LEFT JOIN paciente_familiar pf ON p.id_paciente = pf.id_paciente AND pf.es_contacto_principal = 1
             LEFT JOIN familiar f ON pf.id_familiar = f.id_familiar
@@ -39,10 +39,10 @@ class PacienteRepository {
     async obtenerPorId(id) {
         const query = `
             SELECT p.*, fm.id_ficha, fm.observaciones AS observaciones_medicas,
-                   f.id_familiar, f.nombres AS familiar_nombres, f.apellidos AS familiar_apellidos, 
-                   f.telefono AS familiar_telefono, f.telefono_secundario AS familiar_telefono_secundario,
-                   f.correo AS familiar_correo, f.dpi AS familiar_dpi, f.direccion AS familiar_direccion,
-                   pf.parentesco, pf.es_contacto_principal
+                f.id_familiar, f.nombres AS familiar_nombres, f.apellidos AS familiar_apellidos, 
+                f.telefono AS familiar_telefono, f.telefono_secundario AS familiar_telefono_secundario,
+                f.correo AS familiar_correo, f.dpi AS familiar_dpi, f.direccion AS familiar_direccion,
+                pf.parentesco, pf.es_contacto_principal
             FROM paciente p
             LEFT JOIN ficha_medica fm ON p.id_paciente = fm.id_paciente
             LEFT JOIN paciente_familiar pf ON p.id_paciente = pf.id_paciente AND pf.es_contacto_principal = 1
@@ -115,7 +115,7 @@ class PacienteRepository {
             const anioActual = new Date().getFullYear();
             await connection.query(
                 `INSERT INTO secuencia_expediente (anio, ultimo) VALUES (?, 1)
-                 ON DUPLICATE KEY UPDATE ultimo = ultimo + 1`,
+            ON DUPLICATE KEY UPDATE ultimo = ultimo + 1`,
                 [anioActual]
             );
 
@@ -179,14 +179,14 @@ class PacienteRepository {
 
                     await connection.query(
                         `INSERT INTO paciente_medicamento (id_paciente, nombre, dosis, frecuencia, via, activo) 
-                         VALUES (?, ?, ?, ?, ?, 1)`,
+                        VALUES (?, ?, ?, ?, ?, 1)`,
                         [idPaciente, nombreMed, med.dosis || null, med.frecuencia || null, med.via || null]
                     );
 
                     await connection.query(
                         `INSERT INTO medicamento (nombre, descripcion, costo, stock, activo) 
-                         VALUES (?, 'Registrado automáticamente desde ingreso de residente', 0.00, 0, 1)
-                         ON DUPLICATE KEY UPDATE activo = 1`,
+                        VALUES (?, 'Registrado automáticamente desde ingreso de residente', 0.00, 0, 1)
+                        ON DUPLICATE KEY UPDATE activo = 1`,
                         [nombreMed]
                     );
                 }
@@ -422,8 +422,8 @@ class PacienteRepository {
                 if (sincronizarCatalogo) {
                     await connection.query(
                         `INSERT INTO medicamento (nombre, descripcion, costo, stock, activo)
-                         VALUES (?, 'Registrado automáticamente desde la edición de la ficha médica', 0.00, 0, 1)
-                         ON DUPLICATE KEY UPDATE activo = 1`,
+                     VALUES (?, 'Registrado automáticamente desde la edición de la ficha médica', 0.00, 0, 1)
+                        ON DUPLICATE KEY UPDATE activo = 1`,
                         [nombreMed]
                     );
                 }

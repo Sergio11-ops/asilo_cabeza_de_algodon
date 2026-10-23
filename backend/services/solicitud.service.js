@@ -60,7 +60,7 @@ class SolicitudService {
                 }
             }
         } catch (e) {
-            console.warn('⚠️ No se pudo procesar o registrar la notificación por correo:', e.message);
+            console.warn('No se pudo procesar o registrar la notificación por correo:', e.message);
         }
 
         return { id_solicitud: idInsertado, mensaje: 'Solicitud médica registrada correctamente.' };
