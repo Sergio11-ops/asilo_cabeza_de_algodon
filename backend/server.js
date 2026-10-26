@@ -25,7 +25,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Servir archivos estáticos del frontend (public)
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 console.log('authRoutes:', typeof authRoutes);
 console.log('usuariosRoutes:', typeof usuariosRoutes); 
