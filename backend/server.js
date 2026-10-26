@@ -32,6 +32,12 @@ console.log('usuariosRoutes:', typeof usuariosRoutes);
 console.log('farmaciaRoutes:', typeof farmaciaRoutes);
 console.log('visitaMedicaRoutes:', typeof visitaMedicaRoutes);
 
+
+// Ruta raíz de prueba
+app.get('/', (req, res) => {
+    res.send('API del Asilo Cabeza de Algodón ejecutándose correctamente en Azure');
+});
+
 // Enrutamiento modular
 app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuariosRoutes);
