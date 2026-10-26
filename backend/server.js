@@ -33,9 +33,12 @@ console.log('farmaciaRoutes:', typeof farmaciaRoutes);
 console.log('visitaMedicaRoutes:', typeof visitaMedicaRoutes);
 
 
-// Ruta raíz de prueba
+// Servir archivos estáticos (CSS, JS, imágenes) desde la carpeta public
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Redirigir la raíz directamente a login.html
 app.get('/', (req, res) => {
-    res.send('API del Asilo Cabeza de Algodón ejecutándose correctamente en Azure');
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 // Enrutamiento modular
