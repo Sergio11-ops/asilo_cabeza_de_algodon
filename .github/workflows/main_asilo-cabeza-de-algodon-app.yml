@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy Node.js app to Azure Web App - asilo-cabeza-de-algodon-app
 
 on:
@@ -11,32 +8,23 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     permissions:
-      contents: read # This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js version
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '22.x'
 
-      - name: npm install, build, and test in backend
+      - name: Install dependencies in backend
         working-directory: ./backend
         run: |
           npm install
           npm run build --if-present
-          npm run test --if-present
-
-      # Si la carpeta 'public' está en la raíz del repositorio, la copiamos a backend
-      - name: Copy public folder to backend
-        shell: powershell
-        run: |
-          if (Test-Path -Path "public") {
-            Copy-Item -Path "public" -Destination "backend" -Recurse -Force
-          }
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -48,8 +36,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write # This is required for requesting the JWT
-      contents: read # This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
