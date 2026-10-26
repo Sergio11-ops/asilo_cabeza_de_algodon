@@ -33,10 +33,10 @@ console.log('farmaciaRoutes:', typeof farmaciaRoutes);
 console.log('visitaMedicaRoutes:', typeof visitaMedicaRoutes);
 
 
-// Servir archivos estáticos (CSS, JS, imágenes) desde la carpeta public
+// Servir archivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Redirigir la raíz directamente a login.html
+// Servir login.html en la raíz
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
