@@ -69,6 +69,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Cargar métricas dinámicas
     cargarKPIsReales();
+    // Control del Menú Hamburguesa para Celulares
+    const toggleBtn = document.getElementById('sidebar-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    if (toggleBtn && sidebar && overlay) {
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+        });
+    }
+
+
 });
 
 async function cargarKPIsReales() {

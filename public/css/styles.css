@@ -703,3 +703,58 @@ h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--ink); }
   border-color: #334155 !important;
   color: #94a3b8 !important;
 }
+
+/* ===== VISTA RESPONSIVA PARA CELULARES ===== */
+@media (max-width: 767.98px) {
+  .app-shell {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Oculta el menú de íconos fuera de la pantalla */
+  .icon-rail {
+    position: fixed !important;
+    top: 0;
+    left: -280px;
+    width: 280px !important;
+    height: 100vh;
+    z-index: 1050;
+    transition: left 0.3s ease-in-out;
+    background-color: #ffffff;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Muestra el menú cuando esté activo */
+  .icon-rail.show {
+    left: 0;
+  }
+
+  /* Fondo traslúcido detrás del menú */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1040;
+    backdrop-filter: blur(2px);
+  }
+
+  .sidebar-overlay.show {
+    display: block;
+  }
+
+  /* Expande el panel principal a pantalla completa */
+  .main-panel {
+    width: 100% !important;
+    margin-left: 0 !important;
+    padding: 1rem !important;
+  }
+
+  /* Ocultar la columna lateral derecha en móviles para limpiar la vista */
+  .side-rail {
+    display: none;
+  }
+}
