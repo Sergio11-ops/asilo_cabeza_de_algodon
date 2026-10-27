@@ -13,17 +13,33 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body data-pagina-roles="admin,especialista,medico_general">
-  <div class="app-shell">
+<div class="app-shell">
 
-    <!-- Rail de Navegación -->
-    <aside class="icon-rail">
-      <div class="rail-logo"><img src="imagenes/logo.png" alt="Logo"></div>
+    <!-- 1. Encabezado para Móvil con Botón Hamburguesa -->
+    <header class="mobile-header d-md-none p-3 bg-white shadow-sm d-flex justify-content-between align-items-center w-100">
+      <div class="d-flex align-items-center gap-2">
+        <img src="imagenes/logo.png" alt="Logo" style="height: 32px; object-fit: contain;">
+        <span class="fw-bold fs-6 text-dark">Cabeza de Algodón</span>
+      </div>
+      <button id="sidebar-toggle" class="btn btn-light rounded-circle border-0 shadow-sm" type="button" aria-label="Abrir menú">
+        <i class="bi bi-list fs-3"></i>
+      </button>
+    </header>
+
+    <!-- 2. Fondo oscuro al abrir menú en celular -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- 3. Rail de íconos -->
+    <aside class="icon-rail" id="sidebar">
+      <div class="rail-logo">
+        <img src="imagenes/logo.png" alt="Logo Cabeza de Algodón">
+      </div>
       <nav class="rail-nav">
         <a class="rail-link" href="dashboard.html" title="Inicio" data-roles="admin,medico_general,especialista,enfermero,laboratorio,farmacia,caja,fundacion"><i class="bi bi-house-door-fill"></i></a>
-        <a class="rail-link" href="registro_paciente.html" title="Gestión Pacientes" data-roles="admin,medico_general,enfermero"><i class="bi bi-person-plus"></i></a>    
-        <a class="rail-link" href="solicitud_medica.html" title="Solicitudes Médicas" data-roles="admin,medico_general"><i class="bi bi-file-earmark-medical"></i></a>
-        <a class="rail-link" href="agenda_fundacion.html" title="Agenda Fundación" data-roles="admin,enfermero"><i class="bi bi-calendar-check"></i></a>
-        <a class="rail-link" href="visita_medica.html" title="Visitas y Especialidades" data-roles="admin,especialista,medico_general"><i class="bi bi-heart-pulse"></i></a>       
+        <a class="rail-link" href="registro_paciente.html" title="Gestión Pacientes" data-roles="admin,medico_general,especialista,enfermero"><i class="bi bi-person-plus"></i></a>
+        <a class="rail-link" href="solicitud_medica.html" title="Solicitudes Médicas" data-roles="admin,medico_general,especialista,enfermero"><i class="bi bi-file-earmark-medical"></i></a>
+        <a class="rail-link" href="agenda_fundacion.html" title="Agenda Fundación" data-roles="admin,fundacion"><i class="bi bi-calendar-check"></i></a>
+        <a class="rail-link" href="visita_medica.html" title="Visitas y Especialidades" data-roles="admin,medico_general,especialista"><i class="bi bi-heart-pulse"></i></a>
         <a class="rail-link" href="laboratorio.html" title="Laboratorio" data-roles="admin,medico_general,especialista,laboratorio"><i class="bi bi-clipboard2-pulse"></i></a>
         <a class="rail-link" href="farmacia.html" title="Farmacia" data-roles="admin,medico_general,especialista,farmacia"><i class="bi bi-capsule"></i></a>
         <a class="rail-link" href="caja_donaciones.html" title="Caja y Donaciones" data-roles="admin,caja"><i class="bi bi-cash-coin"></i></a>
@@ -35,6 +51,7 @@
       </div>
     </aside>
 
+    <!-- Panel Principal -->
     <main class="main-panel">
       <header class="main-header">
         <div>
