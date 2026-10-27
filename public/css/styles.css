@@ -704,34 +704,41 @@ h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--ink); }
   color: #94a3b8 !important;
 }
 
-/* ===== VISTA RESPONSIVA PARA CELULARES ===== */
-@media (max-width: 767.98px) {
+/* ===== VISTA RESPONSIVA PARA MÓVILES ===== */
+@media (max-width: 768px) {
   .app-shell {
     display: flex;
     flex-direction: column;
+    width: 100%;
+    overflow-x: hidden;
   }
 
-  /* Oculta el menú de íconos fuera de la pantalla */
+  /* Oculta la barra de íconos completamente hacia la izquierda */
   .icon-rail {
     position: fixed !important;
-    top: 0;
-    left: -280px;
-    width: 280px !important;
-    height: 100vh;
-    z-index: 1050;
-    transition: left 0.3s ease-in-out;
-    background-color: #ffffff;
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
+    top: 0 !important;
+    left: 0 !important;
+    width: 260px !important;
+    height: 100vh !important;
+    z-index: 1050 !important;
+    transform: translateX(-100%) !important; /* Oculta el menú fuera de pantalla */
+    transition: transform 0.3s ease-in-out !important;
+    background-color: #ffffff !important;
+    box-shadow: 5px 0 20px rgba(0, 0, 0, 0.15) !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 1.5rem 1rem !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
-  /* Muestra el menú cuando esté activo */
+  /* Muestra el menú deslizándolo cuando se active la clase .show */
   .icon-rail.show {
-    left: 0;
+    transform: translateX(0) !important;
   }
 
-  /* Fondo traslúcido detrás del menú */
+  /* Fondo oscuro semi-transparente detrás del menú */
   .sidebar-overlay {
-    display: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -739,6 +746,7 @@ h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--ink); }
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.4);
     z-index: 1040;
+    display: none;
     backdrop-filter: blur(2px);
   }
 
@@ -746,15 +754,15 @@ h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--ink); }
     display: block;
   }
 
-  /* Expande el panel principal a pantalla completa */
+  /* El contenido principal ocupa el 100% de la pantalla */
   .main-panel {
     width: 100% !important;
     margin-left: 0 !important;
     padding: 1rem !important;
   }
 
-  /* Ocultar la columna lateral derecha en móviles para limpiar la vista */
+  /* Ocultar la barra lateral derecha para limpiar la pantalla en celular */
   .side-rail {
-    display: none;
+    display: none !important;
   }
 }
