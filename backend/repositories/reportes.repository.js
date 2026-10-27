@@ -12,18 +12,18 @@ class ReportesRepository {
                 p.expediente,
                 CONCAT(p.nombres, ' ', p.apellidos) AS paciente,
                 COALESCE(
-                    NULLIF(TRIM(CONCAT(COALESCE(m.nombre, u.nombre, ''), ' ', COALESCE(m.apellido, u.apellido, ''))), ''),
+                    NULLIF(TRIM(CONCAT(COALESCE(u.nombre, ''), ' ', COALESCE(u.apellido, ''))), ''),
                     'Médico General'
                 ) AS medico,
-                v.costo_consulta,
+                COALESCE(v.costo_consulta, 0) AS costo_consulta,
                 COALESCE((
-                    SELECT SUM(COALESCE(c.monto, ve.precio_aplicado)) 
+                    SELECT SUM(COALESCE(c.monto, ve.precio_aplicado, 0)) 
                     FROM visita_examen ve 
                     LEFT JOIN cargo c ON c.id_visita_examen = ve.id_visita_examen
                     WHERE ve.id_visita = v.id_visita AND ve.estado = 'completado'
                 ), 0) AS costo_examenes,
                 COALESCE((
-                    SELECT SUM(COALESCE(c.monto, dr.precio_aplicado * dr.cantidad)) 
+                    SELECT SUM(COALESCE(c.monto, dr.precio_aplicado * dr.cantidad, 0)) 
                     FROM receta r 
                     JOIN detalle_receta dr ON r.id_receta = dr.id_receta 
                     LEFT JOIN cargo c ON c.id_detalle_receta = dr.id_detalle
@@ -31,9 +31,9 @@ class ReportesRepository {
                 ), 0) AS costo_medicamentos
             FROM visita_medica v
             LEFT JOIN ficha_medica fm ON v.id_ficha = fm.id_ficha
-            JOIN paciente p ON p.id_paciente = COALESCE(v.id_paciente, fm.id_paciente)
+            LEFT JOIN paciente p ON p.id_paciente = COALESCE(v.id_paciente, fm.id_paciente)
             LEFT JOIN medico m ON v.id_medico = m.id_medico
-            LEFT JOIN usuario u ON m.id_usuario = u.id_usuario
+            LEFT JOIN usuario u ON u.id_usuario = COALESCE(m.id_usuario, v.id_medico)
             WHERE 1=1
         `;
         const params = [];
@@ -56,56 +56,88 @@ class ReportesRepository {
         return rows;
     }
 
-    // 2. Reporte de Análisis médico y ficha por paciente (Historial clínico directo)
+    // 2. Reporte de Análisis médico y ficha por paciente
     async obtenerAnalisisMedicoFicha(id_paciente) {
-        const [[paciente]] = await db.query(`
+        if (!id_paciente) return null;
+
+        const [pacientes] = await db.query(`
             SELECT 
                 p.id_paciente, p.expediente, p.dpi, 
                 CONCAT(p.nombres, ' ', p.apellidos) AS paciente,
                 p.fecha_nacimiento, p.fecha_ingreso, p.grupo_sanguineo,
                 p.direccion, p.telefono, p.cuota_mensual,
-                f.fecha_registro, f.padecimientos, f.observaciones AS motivo_recluimiento
+                COALESCE(f.fecha_registro, p.fecha_ingreso) AS fecha_registro, 
+                COALESCE(f.padecimientos, '') AS padecimientos, 
+                COALESCE(f.observaciones, '') AS motivo_recluimiento
             FROM paciente p
             LEFT JOIN ficha_medica f ON p.id_paciente = f.id_paciente
             WHERE p.id_paciente = ?
         `, [id_paciente]);
 
-        if (!paciente) return null;
+        if (!pacientes || pacientes.length === 0) return null;
+        const paciente = pacientes[0];
 
-        const [psicopatologias] = await db.query(`
-            SELECT descripcion, nivel 
-            FROM paciente_psicopatologia 
-            WHERE id_paciente = ?
-        `, [id_paciente]);
+        // Psicopatologías
+        let psicopatologias = [];
+        try {
+            const [rows] = await db.query(`
+                SELECT 
+                    COALESCE(cp.nombre_condicion, cp.nombre, 'Condición clínica') AS descripcion,
+                    COALESCE(pp.nivel, 'Diagnosticado') AS nivel
+                FROM paciente_psicopatologia pp
+                LEFT JOIN catalogo_psicopatologia cp ON pp.id_psicopatologia = cp.id_psicopatologia
+                WHERE pp.id_paciente = ?
+            `, [id_paciente]);
+            psicopatologias = rows;
+        } catch (e1) {
+            try {
+                const [rows] = await db.query(`
+                    SELECT descripcion, nivel FROM paciente_psicopatologia WHERE id_paciente = ?
+                `, [id_paciente]);
+                psicopatologias = rows;
+            } catch (e2) {
+                psicopatologias = [];
+            }
+        }
 
-        const [medicamentosFrecuentes] = await db.query(`
-            SELECT nombre, dosis, frecuencia, via 
-            FROM paciente_medicamento 
-            WHERE id_paciente = ? AND activo = 1
-        `, [id_paciente]);
+        // Medicamentos frecuentes
+        let medicamentosFrecuentes = [];
+        try {
+            const [rows] = await db.query(`
+                SELECT nombre, dosis, frecuencia, via 
+                FROM paciente_medicamento 
+                WHERE id_paciente = ? AND (activo = 1 OR activo IS NULL)
+            `, [id_paciente]);
+            medicamentosFrecuentes = rows;
+        } catch (e) {
+            medicamentosFrecuentes = [];
+        }
 
-        // Historial de visitas clínicas sin duplicados
-       // Historial de consultas clínicas reales (excluye registros técnicos directos de farmacia/laboratorio)
-        const [historialVisitas] = await db.query(`
-            SELECT 
-                v.fecha_visita, 
-                COALESCE(NULLIF(v.motivo_visita, ''), s.motivo, 'Consulta Médica') AS motivo_visita, 
-                v.diagnostico, 
-                v.observaciones,
-                COALESCE(
-                    NULLIF(TRIM(CONCAT(COALESCE(m.nombre, u.nombre, ''), ' ', COALESCE(m.apellido, u.apellido, ''))), ''),
-                    'Médico General'
-                ) AS medico
-            FROM visita_medica v
-            LEFT JOIN ficha_medica fm ON v.id_ficha = fm.id_ficha
-            LEFT JOIN solicitud_medica s ON v.id_solicitud = s.id_solicitud
-            LEFT JOIN medico m ON v.id_medico = m.id_medico
-            LEFT JOIN usuario u ON m.id_usuario = u.id_usuario
-            WHERE (v.id_paciente = ? OR fm.id_paciente = ?)
-            AND (v.diagnostico IS NOT NULL OR v.id_solicitud IS NOT NULL)
-            AND (v.observaciones IS NULL OR (v.observaciones NOT LIKE '%Directa%' AND v.observaciones NOT LIKE '%Prescripción%'))
-            ORDER BY v.fecha_visita DESC
-        `, [id_paciente, id_paciente]);
+        // Historial de visitas
+        let historialVisitas = [];
+        try {
+            const [rows] = await db.query(`
+                SELECT 
+                    v.fecha_visita, 
+                    COALESCE(NULLIF(v.motivo_visita, ''), s.motivo, 'Consulta Médica') AS motivo_visita, 
+                    v.diagnostico, 
+                    v.observaciones,
+                    COALESCE(
+                        NULLIF(TRIM(CONCAT(COALESCE(u.nombre, ''), ' ', COALESCE(u.apellido, ''))), ''),
+                        'Médico General'
+                    ) AS medico
+                FROM visita_medica v
+                LEFT JOIN ficha_medica fm ON v.id_ficha = fm.id_ficha
+                LEFT JOIN solicitud_medica s ON v.id_solicitud = s.id_solicitud
+                LEFT JOIN medico m ON v.id_medico = m.id_medico
+                LEFT JOIN usuario u ON u.id_usuario = COALESCE(m.id_usuario, v.id_medico)
+                WHERE (v.id_paciente = ? OR fm.id_paciente = ?)
+                ORDER BY v.fecha_visita DESC
+            `, [id_paciente, id_paciente]);
+            historialVisitas = rows;
+        } catch (e) {
+            historialVisitas = [];
+        }
 
         return {
             paciente,
@@ -115,7 +147,7 @@ class ReportesRepository {
         };
     }
 
-    // 3. Reporte de cobros por paciente por rango de fechas
+    // 3. Reporte de cobros por paciente
     async obtenerCobrosPorPaciente(id_paciente, fechaInicio, fechaFin) {
         let sql = `
             SELECT 
