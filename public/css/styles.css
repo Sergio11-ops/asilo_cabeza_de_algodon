@@ -704,64 +704,106 @@ h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; color: var(--ink); }
   color: #94a3b8 !important;
 }
 
-/* ===== VISTA RESPONSIVA PARA MÓVILES ===== */
-@media (max-width: 768px) {
-  .app-shell {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    overflow-x: hidden;
+/* ====================================================
+   1. REGLAS PARA ESCRITORIO (Pantallas mayores a 768px)
+   ==================================================== */
+@media (min-width: 769px) {
+  /* Ocultar elementos móviles en computadora */
+  .mobile-header,
+  .sidebar-overlay {
+    display: none !important;
   }
 
-  /* Oculta la barra de íconos completamente hacia la izquierda */
+  /* Restablecer el diseño original de escritorio */
+  .app-shell {
+    display: flex !important;
+    flex-direction: row !important;
+  }
+
+  .icon-rail {
+    position: relative !important;
+    transform: none !important;
+    left: auto !important;
+    top: auto !important;
+    height: 100vh !important;
+    z-index: 10 !important;
+  }
+
+  .main-panel {
+    flex: 1 !important;
+    width: auto !important;
+  }
+
+  .side-rail {
+    display: block !important;
+  }
+}
+
+/* ====================================================
+   2. REGLAS PARA CELULARES (Pantallas de 768px o menos)
+   ==================================================== */
+@media (max-width: 768px) {
+  .app-shell {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-height: 100vh !important;
+  }
+
+  /* Encabezado superior en celular */
+  .mobile-header {
+    display: flex !important;
+    position: sticky !important;
+    top: 0;
+    z-index: 1000;
+    background-color: #ffffff;
+  }
+
+  /* Menú lateral deslizable (Fondo blanco sólido sobre el overlay) */
   .icon-rail {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
-    width: 260px !important;
+    width: 280px !important;
     height: 100vh !important;
-    z-index: 1050 !important;
-    transform: translateX(-100%) !important; /* Oculta el menú fuera de pantalla */
+    background-color: #ffffff !important; /* Cubre completamente el contenido de atrás */
+    z-index: 1060 !important;            /* Capa superior al fondo oscuro */
+    transform: translateX(-100%) !important; /* Oculto a la izquierda por defecto */
     transition: transform 0.3s ease-in-out !important;
-    background-color: #ffffff !important;
-    box-shadow: 5px 0 20px rgba(0, 0, 0, 0.15) !important;
-    border-radius: 0 !important;
-    margin: 0 !important;
-    padding: 1.5rem 1rem !important;
-    display: flex !important;
-    flex-direction: column !important;
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.2) !important;
+    overflow-y: auto !important;
   }
 
-  /* Muestra el menú deslizándolo cuando se active la clase .show */
+  /* Desplegar menú lateral */
   .icon-rail.show {
     transform: translateX(0) !important;
   }
 
-  /* Fondo oscuro semi-transparente detrás del menú */
+  /* Fondo oscuro traslúcido detrás del menú */
   .sidebar-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.4);
-    z-index: 1040;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    z-index: 1050 !important;
     display: none;
     backdrop-filter: blur(2px);
   }
 
   .sidebar-overlay.show {
-    display: block;
+    display: block !important;
   }
 
-  /* El contenido principal ocupa el 100% de la pantalla */
+  /* Panel principal ocupando todo el ancho */
   .main-panel {
     width: 100% !important;
     margin-left: 0 !important;
     padding: 1rem !important;
   }
 
-  /* Ocultar la barra lateral derecha para limpiar la pantalla en celular */
+  /* Ocultar columna de la derecha en celulares para evitar saturación */
   .side-rail {
     display: none !important;
   }
